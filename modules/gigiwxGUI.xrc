@@ -1,0 +1,890 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxFrame" name="gigiwxcapture">
+    <object class="wxNotebook" name="schede">
+      <bg>#401010</bg>
+      <object class="notebookpage">
+        <object class="wxPanel" name="config">
+          <object class="wxButton" name="selectcapturewindow">
+            <pos>5,10</pos>
+            <size>150,25</size>
+            <label>Select Capture Window</label>
+          </object>
+          <object class="wxStaticLine" name="configfileline">
+            <pos>5,40</pos>
+            <size>150,-1</size>
+            <style>wxLI_HORIZONTAL</style>
+          </object>
+          <object class="wxComboBox" name="mountportcombo">
+            <pos>5,50</pos>
+            <size>150,25</size>
+            <bg>#a56363</bg>
+            <style>wxCB_READONLY</style>
+          </object>
+          <object class="wxStaticText" name="mountportt">
+            <pos>10,77</pos>
+            <size>150,15</size>
+            <label>Mount port</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticLine" name="configfileline">
+            <pos>5,95</pos>
+            <size>150,-1</size>
+            <style>wxLI_HORIZONTAL</style>
+          </object>
+          <object class="wxButton" name="savecurrentconfig">
+            <pos>5,100</pos>
+            <size>150,25</size>
+            <label>Save Current Config.</label>
+          </object>
+          <object class="wxButton" name="reloadconfig">
+            <pos>5,125</pos>
+            <size>150,25</size>
+            <label>Reload Config</label>
+          </object>
+          <object class="wxComboBox" name="languagecombo">
+            <pos>5,180</pos>
+            <size>80,25</size>
+            <bg>#a56363</bg>
+            <style>wxCB_READONLY</style>
+          </object>
+          <object class="wxStaticText" name="languaget">
+            <pos>90,185</pos>
+            <size>100,15</size>
+            <label>Language</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticText" name="nomeprog">
+            <pos>30,280</pos>
+            <size>150,15</size>
+            <label>GiGiWxCapture 1.0</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticText" name="nickname">
+            <pos>50,295</pos>
+            <size>150,15</size>
+            <label>- Vampire-</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticText" name="author">
+            <pos>30,310</pos>
+            <size>150,15</size>
+            <label>by Andrea Console</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <bg>#A52A2A</bg>
+        </object>
+        <label>Conf</label>
+        <selected>1</selected>
+      </object>
+      <object class="notebookpage">
+        <object class="wxPanel" name="align">
+          <object class="wxButton" name="cameraorientation">
+            <pos>5,10</pos>
+            <size>150,25</size>
+            <label>CCD Orientation</label>
+          </object>
+          <object class="wxStaticLine">
+            <pos>5,40</pos>
+            <size>150,-1</size>
+            <fg>#ADD8E6</fg>
+            <style>wxLI_HORIZONTAL</style>
+          </object>
+          <object class="wxStaticText" name="starposition">
+            <pos>10,50</pos>
+            <size>150,15</size>
+            <label>Star Position</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxRadioButton" name="starsouth">
+            <pos>5,65</pos>
+            <label>South</label>
+            <value>1</value>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxRadioButton" name="stareast">
+            <pos>77,65</pos>
+            <label>E</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxRadioButton" name="starwest">
+            <pos>112,65</pos>
+            <label>W</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxButton" name="correction">
+            <pos>5,95</pos>
+            <size>150,25</size>
+            <label>Azimuth Correction</label>
+          </object>
+          <object class="wxStaticLine" name="invertcorrectionline">
+            <pos>5,125</pos>
+            <size>150,-1</size>
+          </object>
+          <object class="wxCheckBox" name="invertcorrection">
+            <pos>5,135</pos>
+            <size>150,25</size>
+            <label>Invert Correction</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxCheckBox" name="savepe">
+            <pos>5,160</pos>
+            <size>150,25</size>
+            <label>Save Periodic Error</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxButton" name="resetcorrection">
+            <pos>5,185</pos>
+            <size>150,25</size>
+            <label>Reset Correction</label>
+          </object>
+          <object class="wxTextCtrl" name="aligninstr">
+            <pos>5,210</pos>
+            <size>150,235</size>
+            <value>testo testo testo-testo-testone-testo-testo testo testo testo testo testo</value>
+            <fg>#BFBFBF</fg>
+            <bg>#631919</bg>
+            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT|wxTE_WORDWRAP</style>
+          </object>
+          <bg>#A52A2A</bg>
+          <object class="wxRadioBox" name="speed">
+            <pos>5,450</pos>
+            <size>150,145</size>
+            <label>   Mount Control</label>
+            <dimension>1</dimension>
+            <content>
+              <item>min</item>
+              <item>mid</item>
+              <item>max</item>
+            </content>
+            <selection>1</selection>
+            <dimension>1</dimension>
+            <fg>#ADD8E6</fg>
+            <font>
+              <size>9</size>
+              <style>normal</style>
+              <weight>normal</weight>
+              <underlined>0</underlined>
+              <family>default</family>
+              <face>Ubuntu</face>
+              <encoding/>
+            </font>
+            <style>wxNO_BORDER|wxRA_SPECIFY_ROWS</style>
+          </object>
+          <object class="wxStaticBitmap" name="mountstop">
+            <pos>30,490</pos>
+            <size>100,100</size>
+            <bitmap>../images/stop.bmp</bitmap>
+          </object>
+          <object class="wxStaticBitmap" name="mountleft">
+            <pos>30,490</pos>
+            <size>100,100</size>
+            <bitmap>../images/left.bmp</bitmap>
+            <hidden>1</hidden>
+          </object>
+          <object class="wxStaticBitmap" name="mountright">
+            <pos>30,490</pos>
+            <size>100,100</size>
+            <bitmap>../images/right.bmp</bitmap>
+            <hidden>1</hidden>
+          </object>
+          <object class="wxStaticBitmap" name="mountup">
+            <pos>30,490</pos>
+            <size>100,100</size>
+            <bitmap>../images/up.bmp</bitmap>
+            <hidden>1</hidden>
+          </object>
+          <object class="wxStaticBitmap" name="mountdown">
+            <pos>30,490</pos>
+            <size>100,100</size>
+            <bitmap>../images/down.bmp</bitmap>
+            <hidden>1</hidden>
+          </object>
+          <tooltip>click on ccd image AND use arrow keys TO control mount</tooltip>
+        </object>
+        <label>Align</label>
+      </object>
+      <object class="notebookpage">
+        <object class="wxPanel" name="guide">
+          <object class="wxTextCtrl" name="calibrationsize">
+            <pos>5,37</pos>
+            <size>70,25</size>
+            <value>150</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxToggleButton" name="guidecalibration">
+            <pos>5,10</pos>
+            <size>150,25</size>
+            <label>Guide Calibr. On/Off</label>
+          </object>
+          <object class="wxTextCtrl" name="arguidevalue">
+            <pos>5,37</pos>
+            <size>70,25</size>
+            <value>1000</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxTextCtrl" name="decguidevalue">
+            <pos>82,37</pos>
+            <size>70,25</size>
+            <value>1000</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxCheckBox" name="invertar">
+            <pos>5,65</pos>
+            <size>60,25</size>
+            <label>Inv. AR</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxCheckBox" name="invertdec">
+            <pos>85,65</pos>
+            <size>70,25</size>
+            <label>Inv. DEC</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxCheckBox" name="enableDec">
+            <pos>5,85</pos>
+            <size>150,25</size>
+            <label>Enable DEC guide</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxStaticLine" name="guideconfigline">
+            <pos>5,115</pos>
+            <size>150,-1</size>
+            <style>wxLI_HORIZONTAL</style>
+          </object>
+          <object class="wxTextCtrl" name="armincorr">
+            <pos>5,125</pos>
+            <size>50,25</size>
+            <value>200</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="armincorrt">
+            <pos>60,130</pos>
+            <size>110,15</size>
+            <label>min AR corr. ms</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="decmincorr">
+            <pos>5,152</pos>
+            <size>50,25</size>
+            <value>200</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="decmincorrt">
+            <pos>60,157</pos>
+            <size>110,15</size>
+            <label>min DEC corr. ms</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="guideinterval">
+            <pos>5,179</pos>
+            <size>50,25</size>
+            <value>2000</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="guideintervalt">
+            <pos>60,184</pos>
+            <size>110,15</size>
+            <label>guide interval sec</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticLine" name="ditheringline">
+            <pos>5,207</pos>
+            <size>150,-1</size>
+            <style>wxLI_HORIZONTAL</style>
+          </object>
+          <object class="wxButton" name="imagesdir">
+            <pos>5,217</pos>
+            <size>150,25</size>
+            <label>Images Directory</label>
+          </object>
+          
+          <object class="wxTextCtrl" name="armaxdithering">
+            <pos>5,244</pos>
+            <size>50,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="armaxditheringt">
+            <pos>60,249</pos>
+            <size>110,15</size>
+            <label>AR max dith. px</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A56363</bg>
+          </object>
+          <object class="wxTextCtrl" name="decmaxdithering">
+            <pos>5,271</pos>
+            <size>50,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="decmaxditheringt">
+            <pos>60,276</pos>
+            <size>110,15</size>
+            <label>DEC max dith. px</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="dithinterval">
+            <pos>5,298</pos>
+            <size>50,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="dithintervalt">
+            <pos>60,304</pos>
+            <size>110,15</size>
+            <label>frames btwn dith</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxToggleButton" name="guideonoff">
+            <pos>5,330</pos>
+            <size>150,25</size>
+            <label>Guide On/Off</label>
+          </object>
+          <object class="wxTextCtrl" name="guideinstr">
+            <pos>5,356</pos>
+            <size>150,235</size>
+            <value>testo testo testo-testo-testone-testo-testo testo testo testo testo testo</value>
+            <fg>#BFBFBF</fg>
+            <bg>#631919</bg>
+            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT|wxTE_WORDWRAP</style>
+          </object>
+          <bg>#A52A2A</bg>
+        </object>
+        <label>Guide</label>
+      </object>
+      <object class="notebookpage">
+        <object class="wxPanel" name="PET-AC">
+          <object class="wxToggleButton" name="petacguidecalibration">
+            <pos>5,10</pos>
+            <size>150,25</size>
+            <label>Guide Calibration On/Off</label>
+          </object>
+          <object class="wxTextCtrl" name="petacarguidevalue">
+            <pos>5,37</pos>
+            <size>70,25</size>
+            <value>1000</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxTextCtrl" name="petacdecguidevalue">
+            <pos>82,37</pos>
+            <size>70,25</size>
+            <value>1000</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxCheckBox" name="petacinvertar">
+            <pos>5,65</pos>
+            <size>60,25</size>
+            <label>Inv. AR</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxCheckBox" name="petacinvertdec">
+            <pos>85,65</pos>
+            <size>70,25</size>
+            <label>Inv. DEC</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxStaticLine" name="petacguideconfigline">
+            <pos>5,95</pos>
+            <size>150,-1</size>
+            <style>wxLI_HORIZONTAL</style>
+          </object>
+          <object class="wxToggleButton" name="petaccalonoff">
+            <pos>5,100</pos>
+            <size>150,25</size>
+            <label>PET-AC calibr. On/Off</label>
+          </object>
+          <object class="wxTextCtrl" name="petacvalue">
+            <pos>5,130</pos>
+            <size>50,25</size>
+            <value>1000</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="petacvaluet">
+            <pos>60,135</pos>
+            <size>110,15</size>
+            <label>calibr. value</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="petacmincorr">
+            <pos>5,157</pos>
+            <size>50,25</size>
+            <value>200</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="petacmincorrt">
+            <pos>60,162</pos>
+            <size>110,15</size>
+            <label>min AR corr. ms</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="petacmountlowspeed">
+            <pos>5,184</pos>
+            <size>50,25</size>
+            <value>1</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="petacmountlowspeedt">
+            <pos>60,189</pos>
+            <size>110,15</size>
+            <label>guiding speed</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticLine" name="petacditheringline">
+            <pos>5,212</pos>
+            <size>150,-1</size>
+            <style>wxLI_HORIZONTAL</style>
+          </object>
+          <object class="wxTextCtrl" name="petacarmaxdithering">
+            <pos>5,222</pos>
+            <size>50,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="petacarmaxditheringt">
+            <pos>60,227</pos>
+            <size>110,15</size>
+            <label>AR max dith. px</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="petacdecmaxdithering">
+            <pos>5,249</pos>
+            <size>50,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="petacdecmaxditheringt">
+            <pos>60,254</pos>
+            <size>110,15</size>
+            <label>DEC max dith. px</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxToggleButton" name="petaconoff">
+            <pos>5,281</pos>
+            <size>150,60</size>
+            <label>PET-AC On/Off</label>
+          </object>
+          <object class="wxTextCtrl" name="petacinstr">
+            <pos>5,347</pos>
+            <size>150,245</size>
+            <value>testo testo testo-testo-testone-testo-testo testo testo testo testo testo</value>
+            <fg>#BFBFBF</fg>
+            <bg>#631919</bg>
+            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT|wxTE_WORDWRAP</style>
+          </object>
+          <bg>#A52A2A</bg>
+        </object>
+        <label>PET-AC</label>
+      </object>
+      <object class="notebookpage">
+        <object class="wxPanel" name="tools">
+          <object class="wxToggleButton" name="crosshair">
+            <pos>5,10</pos>
+            <size>150,25</size>
+            <label>Crosshair</label>
+          </object>
+          <object class="wxToggleButton" name="fwhm">
+            <pos>5,35</pos>
+            <size>150,25</size>
+            <label>FWHM measure</label>
+          </object>
+          <object class="wxButton" name="zoom2x">
+            <pos>5,60</pos>
+            <size>150,25</size>
+            <label>Zoom 2X</label>
+          </object>
+          <object class="wxButton" name="takeapicture">
+            <pos>5,85</pos>
+            <size>150,25</size>
+            <label>Take a Picture</label>
+            <font>
+              <size>9</size>
+              <style>normal</style>
+              <weight>normal</weight>
+              <underlined>0</underlined>
+              <family>swiss</family>
+              <face>Sans</face>
+              <encoding/>
+            </font>
+          </object>
+          <object class="wxStaticText" name="pixellabel">
+            <pos>5,130</pos>
+            <size>110,15</size>
+            <label>Pixel color: RGB</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticBox" name="fieldcalculator">
+            <pos>5,160</pos>
+            <size>150,115</size>
+            <label>  Field of view calculator</label>
+            <fg>#ADD8E6</fg>
+            <font>
+              <size>9</size>
+              <style>normal</style>
+              <weight>normal</weight>
+              <underlined>0</underlined>
+              <family>default</family>
+              <face>Ubuntu</face>
+              <encoding>ascii</encoding>
+            </font>
+          </object>
+          <object class="wxTextCtrl" name="ccdw">
+            <pos>10,180</pos>
+            <size>30,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxTextCtrl" name="ccdh">
+            <pos>52,180</pos>
+            <size>30,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="ccddim">
+            <pos>43,185</pos>
+            <size>-1,15</size>
+            <label>x</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticText" name="ccddim">
+            <pos>85,185</pos>
+            <size>-1,15</size>
+            <label>CCD dim mm</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="focal">
+            <pos>10,210</pos>
+            <size>40,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="focallenght">
+            <pos>55,215</pos>
+            <size>-1,15</size>
+            <label>Focal Lenght mm</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="field">
+            <pos>10,240</pos>
+            <size>-1,25</size>
+            <value>0</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER|wxTE_READONLY</style>
+          </object>
+          <object class="wxStaticText" name="fieldtext">
+            <pos>115,245</pos>
+            <size>30,25</size>
+            <label>field</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxRadioBox" name="speed1">
+            <pos>5,280</pos>
+            <size>150,145</size>
+            <label>   Mount Control</label>
+            <dimension>1</dimension>
+            <content>
+              <item>min</item>
+              <item>mid</item>
+              <item>max</item>
+            </content>
+            <selection>1</selection>
+            <dimension>1</dimension>
+            <fg>#ADD8E6</fg>
+            <font>
+              <size>9</size>
+              <style>normal</style>
+              <weight>normal</weight>
+              <underlined>0</underlined>
+              <family>default</family>
+              <face>Ubuntu</face>
+              <encoding>ascii</encoding>
+            </font>
+            <style>wxRA_SPECIFY_ROWS</style>
+          </object>
+          <object class="wxStaticBitmap" name="mountstop1">
+            <pos>30,320</pos>
+            <size>100,100</size>
+            <bitmap>../images/stop.bmp</bitmap>
+          </object>
+          <object class="wxStaticBitmap" name="mountleft1">
+            <pos>30,320</pos>
+            <size>100,100</size>
+            <bitmap>../images/left.bmp</bitmap>
+            <hidden>1</hidden>
+          </object>
+          <object class="wxStaticBitmap" name="mountright1">
+            <pos>30,320</pos>
+            <size>100,100</size>
+            <bitmap>../images/right.bmp</bitmap>
+            <hidden>1</hidden>
+          </object>
+          <object class="wxStaticBitmap" name="mountup1">
+            <pos>30,320</pos>
+            <size>100,100</size>
+            <bitmap>../images/up.bmp</bitmap>
+            <hidden>1</hidden>
+          </object>
+          <object class="wxStaticBitmap" name="mountdown1">
+            <pos>30,320</pos>
+            <size>100,100</size>
+            <bitmap>../images/down.bmp</bitmap>
+            <hidden>1</hidden>
+          </object>
+          <bg>#A52A2A</bg>
+          <tooltip>click on ccd image AND use arrow keys TO control mount</tooltip>
+        </object>
+        <label>Tools</label>
+      </object>
+      <object class="notebookpage">
+        <object class="wxPanel" name="help">
+          <object class="wxButton" name="helpbutton">
+            <pos>5,10</pos>
+            <size>150,25</size>
+            <label>Help and HowTo</label>
+          </object>
+          <object class="wxButton" name="about">
+            <pos>5,35</pos>
+            <size>150,25</size>
+            <label>About and FeedBack</label>
+          </object>
+          <object class="wxStaticText" name="nomeprog">
+            <pos>30,280</pos>
+            <size>150,15</size>
+            <label>GiGiWxCapture 1.0</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticText" name="nickname">
+            <pos>50,295</pos>
+            <size>150,15</size>
+            <label>- Vampire-</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxStaticText" name="author">
+            <pos>30,310</pos>
+            <size>150,15</size>
+            <label>by Andrea Console</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <bg>#A52A2A</bg>
+        </object>
+        <label>HELP</label>
+      </object>
+      <size>220,600</size>
+      <fg>#1E90FF</fg>
+      <bg>#A52A2A</bg>
+      <style>wxSIMPLE_BORDER|wxNB_TOP|wxNB_LEFT</style>
+      <XRCED>
+        <events>EVT_NOTEBOOK_PAGE_CHANGED</events>
+        <assign_var>1</assign_var>
+      </XRCED>
+    </object>
+    <size>220,600</size>
+    <title>GiGiWxCapture</title>
+    <fg>#BFBFBF</fg>
+    <bg>#401010</bg>
+    <style>wxSTAY_ON_TOP|wxSYSTEM_MENU|wxMINIMIZE_BOX|wxCAPTION|wxCLIP_CHILDREN|wxCLOSE_BOX</style>
+  </object>
+  <object class="wxFrame" name="vampireFrame">
+    <object class="wxPanel" name="vampirepanel">
+      <object class="wxButton" name="windowplaceauto">
+        <pos>5,10</pos>
+        <size>150,25</size>
+        <label>Automatic</label>
+      </object>
+      <object class="wxButton" name="windowplacemanual">
+        <pos>180,10</pos>
+        <size>150,25</size>
+        <label>Manual</label>
+      </object>
+      <size>4000,4000</size>
+      <bg>#401010</bg>
+    </object>
+    <size>400,400</size>
+    <title>Vampire window</title>
+    <style>wxSTAY_ON_TOP|wxCAPTION|wxRESIZE_BORDER|wxFRAME_NO_TASKBAR</style>
+  </object>
+  <object class="wxFrame" name="aboutFrame">
+    <object class="wxStaticText" name="label">
+      <pos>45,5</pos>
+      <size>-1,25</size>
+      <label>GiGiWxCapture by Andrea Console</label>
+      <fg>#ADD8E6</fg>
+      <style>wxALIGN_CENTRE</style>
+    </object>
+    <object class="wxStaticText" name="label">
+      <pos>60,35</pos>
+      <size>-1,25</size>
+      <label>GiGiWxCapture 1.0 - Vampire</label>
+      <fg>#ADD8E6</fg>
+    </object>
+    <object class="wxStaticText" name="label">
+      <pos>30,65</pos>
+      <size>-1,25</size>
+      <label>copyright 2011 - andreaconsole@gmail.com</label>
+      <fg>#ADD8E6</fg>
+    </object>
+    <object class="wxStaticText" name="description">
+      <pos>10,100</pos>
+      <size>280, 25</size>
+      <label>Please send me a feedback!</label>
+      <wrap>280</wrap>
+      <fg>#ADD8E6</fg>
+    </object>
+    <object class="wxTextCtrl" name="name">
+      <pos>5,250</pos>
+      <size>290,25</size>
+      <value>Your name/email [optional] </value>
+      <bg>#A56363</bg>
+    </object>
+    <object class="wxTextCtrl" name="city">
+      <pos>5,280</pos>
+      <size>290,25</size>
+      <value>Your city/country [optional]</value>
+      <bg>#A56363</bg>
+    </object>
+    <object class="wxTextCtrl" name="comment">
+      <pos>5,310</pos>
+      <size>290,25</size>
+      <value>A small comment... [optional]</value>
+      <bg>#A56363</bg>
+    </object>
+    <object class="wxButton" name="sendid">
+      <pos>100,350</pos>
+      <size>100,25</size>
+      <label>Send</label>
+    </object>
+    <object class="wxStaticLine" name="separationline">
+      <pos>300,10</pos>
+      <size>-1,370</size>
+      <style>wxLI_VERTICAL</style>
+    </object>
+    <object class="wxStaticText" name="label">
+      <pos>520,35</pos>
+      <size>-1,25</size>
+      <label>Basic Help</label>
+      <fg>#ADD8E6</fg>
+    </object>
+    <object class="wxTextCtrl" name="helptext">
+      <pos>310,65</pos>
+      <size>480,270</size>
+      <value>testo testo testo-testo-testone-testo-testo testo testo testo testo testo</value>
+      <fg>#BFBFBF</fg>
+      <bg>#631919</bg>
+      <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT|wxTE_WORDWRAP</style>
+    </object>
+    <object class="wxButton" name="helpreq">
+      <pos>475,350</pos>
+      <size>150,25</size>
+      <label>More Help Online</label>
+    </object>
+    <size>800,390</size>
+    <title>Help, About &amp; feedback</title>
+    <centered>1</centered>
+    <bg>#401010</bg>
+    <style>wxSTAY_ON_TOP|wxCAPTION|wxSYSTEM_MENU|wxCLOSE_BOX|wxMINIMIZE_BOX</style>
+  </object>
+  <object class="wxFrame" name="zoomFrame">
+    <size>300,200</size>
+    <title>GiGiWxCapture - 2x zoom</title>
+    <bg>#401010</bg>
+    <style>wxSTAY_ON_TOP|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCAPTION|wxCLIP_CHILDREN|wxCLOSE_BOX</style>
+  </object>
+  <object class="wxFrame" name="graphFrame">
+    <size>700,100</size>
+    <title>GiGiWxCapture - Guide Graph</title>
+    <bg>#401010</bg>
+    <style>wxSTAY_ON_TOP|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCAPTION|wxCLIP_CHILDREN|wxCLOSE_BOX</style>
+    <object class="wxBoxSizer">
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxToggleButton" name="showarerr">
+              <label>AR err</label>
+              <fg>#FF0000</fg>
+            </object>
+            <option>1</option>
+          </object>
+          <object class="sizeritem">
+            <object class="wxToggleButton" name="showdecerr">
+              <label>DEC err</label>
+              <fg>#0000FF</fg>
+            </object>
+            <option>1</option>
+          </object>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxToggleButton" name="showarcorr">
+              <label>AR corr</label>
+              <fg>#FFA500</fg>
+            </object>
+            <option>1</option>
+          </object>
+          <object class="sizeritem">
+            <object class="wxToggleButton" name="showdeccorr">
+              <label>DEC corr</label>
+              <fg>#ADD8E6</fg>
+            </object>
+            <option>1</option>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="numpoints">
+                  <size>30,20</size>
+                  <value>30</value>
+                  <bg>#A56363</bg>
+                  <style>wxSIMPLE_BORDER</style>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText" name="numpointst">
+                  <label> points</label>
+                  <fg>#ADD8E6</fg>
+                </object>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxPanel" name="graphpanel">
+          <size>600,100</size>
+        </object>
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <orient>wxHORIZONTAL</orient>
+    </object>
+  </object>
+</resource>

@@ -1,0 +1,33 @@
+00 Place the telescope in a way that it is possible to see at least one star in the window. . Now press the "Webcam Orientation" button in order for the software to calculate the webcam orientation.
+01 Shift the star to 1 cm from the window border by using ONLY THE A.R. MOVEMENT. Then click on the star  in order to store its position.
+02 Shift the star to 1 cm from the opposite border of the window by using ONLY THE A.R. MOVEMENT. Then click on the star.
+03 degrees. It will be necessary to calculate again the WEBCAM ORIENTATION only if the device is removed or turned. Then choose if to proceed adjusting the azimuth of the mount (option "star to the SOUTH") or the elevation of the Pole (option "star to the EAST [WEST]") and then press "Azimuth (or Elevation) Calibration". NOTA BENE: the star on the south is to be chosen on the local meridian (the mount balance counterweights lay horizontally). The star at east is to be chosen on the meridian which is perpendicular to the previous one (in order to do so, put the counterweights downwards).
+04 Shift the star towards the centre of the window with the AR/DEC movements of the mount and then click on it. After a few seconds the first correction values will appear (in pixels).
+05 Observe the trend of the "Correction" value. When it keeps settled (Delta will be at around 5-10), press "Calc Correction" in order to get the correction value calculated. Generally, the better the alignment, the slower the convergence.
+06 Shift the star inside the small red circle with the A.R./DEC controls. Then move it until it reaches the green line using just the azimuth movement of the mount.
+07 Shift the star inside the small red circle with the A.R./DEC controls. Then move it until it reaches the green line using just the movement in height of the mount.
+08 Repeat this procedure
+09 times.
+10 Warning: The error is bigger than in last measurement: 1. if this is the second measurement, you need to invert the sense of correction (flag "Invert"); 2. it is likely that the time that you have been waiting is not enough to get the algorithm converged (variation was still too big): try again; 3. the alignment in the perpendicular direction is far worse and prevents from obtaining a more precise global alignment (you then need to work on the other direction before).
+11 After making the correction, you can choose if to refine the alingnment further (observe how much the star is shifting in time in order to decide, normally for non-fixed stations an error like 50 indicates a very good aligment), move to (or improve) the correction in the other direction or finish the procedure ("End" button).
+12 Click on the star chosen for calibration.
+13 Frame the guide star. First of all it will be necessary to orientate the webcam so that the AR moment (right or left arrow) will cause the star to move HORIZONTALLY (the crossroads may be of help). Then use the "inv AR" and "inv DEC" flags to create a correspondance between the arrow keys and the movement of the star. Put the star roughly at the central position in the window and proceed with calibration. If calibration is already done, just set the guide interval and press "Guide On/Off".
+14
+15 Verify the guide settings, put the star roughly at central position in the window and adjust the camera setting in order for it not to appeare saturated. Click on the star when ready.
+16 Now the self-guide is working. Press "Guide On/Off" to end.
+17 The selected COM port is not valid or is busy. Verify and select the correct port.
+18 GiGiWxCapture will load the settings registered in the configuration file. Do you want to proceed?
+19 Do you want to save the present configuration of the software?
+20 The position of the star in the second point is too close to the one registered in the first point: it is necessary to repeat the acquisition procedure for CCD orientation.
+21 Calibration in progress... please wait.
+22 Calibration successfully registered. In order to use self-guide, please frame the guide star, set the guide interval and press "Guide On/Off".
+23 Calibration interrupted. Remember you can always insert the guide parameters manually in the above textboxs. In order to use the self-guide, please frame the guide star, set the guide interval and press "Guide On/Off".
+24 I wrote this software primarily to satisfy my own needs, but I'll be very happy if someone finds it useful. If you are using GigiWxCapture, I would very much like to know! please fill in the module herewith and press "Send" to send me your feedback (feel free to fill in just the information you deem appropriate).
+25 The parameters of the software are the same as those in the configuration file. Nothing new to save.
+26 Configuration saved.
+27 Some parameters have been modified from those in the configuration file. Do you want to save the new configuration?
+28 Has the capture window been correctly found?
+29 Do you want to confirm the data you insterted in the module?
+30 Press ok and click on the star to measure (for a correct analysis, the star must not be saturated).
+31 Do you want to save the image in the capture window?
+32 Image saved in ./savedBMP.

@@ -1,0 +1,33 @@
+00 Placez le télescope d'une manière qu'il est possible de voir au moins une étoile dans la fenêtré. Si l'étoile semble saturée, modifiez les paramètres de la webcam en réduisant ou en augmentant les gains fps et la vitesse d'obturation. Appuyez ensuite sur le bouton « Webcam Orientation » pour que le logiciel calcule l'orientation de la webcam.
+01 Faites glisser l'étoile 1 cm du bord de la fenêtre en utilisant seulement le MOUVEMENT AR. Ensuite, cliquez sur l'étoile pour stocker sa position.
+02 Faites glisser l'étoile 1 cm du bord opposé de la fenêtre en utilisant uniquement le MOUVEMENT AR. Ensuite, cliquez sur l'étoile.
+03 degrés. Il sera nécessaire de calculer à nouveau l'orientation de la webcam seulement si le dispositif est retiré ou tourné. Choisissez ensuite si procéder avec le réglage de l'azimut de la monture (option  « étoile au Sud » ) ou l'élévation du pôle (option « étoile à l'Est [ouest] »), puis appuyez sur « Azimut Calibration (ou élévation)» . NOTA BENE: l'étoile au sud est à choisir sur le méridien local  (contrepoids de la monture fixés horizontalement). L'étoile à l'Est ou à l'Ouest doit être choisie sur le méridien qui est perpendiculaire au précédente (il faut mettre les contrepoids en bas).
+04 Déplacez l'étoile vers le centre de la fenêtre avec les contrôles AR / DEC de la monture, puis cliquez dessus. Après quelques secondes, les valeurs premières de correction apparaîtrons (en pixels).
+05 Observez l'évolution de la valeur « Correction ». Quand elle devient constante (Delta sera aux alentours de 5-10), appuyez sur « Calc Correction » pour obtenir la valeur de correction calculée. En règle générale, à un bon alignement correspond un ralentissement de la convergence.
+06 Déplacez l'étoile à l'intérieur du petit carré rouge avec les contrôles AR / DEC. Puis déplacez-la jusqu’à ce qu'elle atteigne la ligne verte en utilisant seulement le mouvement azimut de la monture.
+07 Déplacez l'étoile à l'intérieur du petit carré rouge avec les contrôles AR / DEC. Puis déplacez-la jusqu’à ce qu'elle atteigne la ligne verte en utilisant seulement le mouvement en hauteur du support.
+08 Répétez cette procédure
+09 fois.
+10 Attention: L'erreur est plus grande que dans la dernière mensuration: 1. si c'est la deuxième mensuration, vous avez besoin d'inverser le sens de la correction (marque « Invert »), 2. il est probable que le temps que vous attendiez n'est pas suffisant à obtenir la convergence de l'algorithme (la variation était trop grand): essayez à nouveau; 3. l'alignement dans la direction perpendiculaire est bien pire et empêche d'obtenir un alignement global plus précis (vous avez besoin alors de travailler sur l'autre direction avant).
+11 Après avoir effectué la correction, vous pouvez choisir si d'affiner l'alignement encore (observez combien l'étoile se déplace dans le temps afin de décider, normalement pour les postes non-fixes une erreur comme 50 indique un très bon alignement), passer à (ou améliorer) la correction dans l'autre sens ou la terminer la procédure ( bouton  « End »).
+12 Cliquez sur l'étoile choisie pour la calibration.
+13 Encadrez l'étoile guide. Tout d'abord, il sera nécessaire d'orienter la webcam de façon que le mouvement AR (flèche droite ou gauche) fasse déplacer l'étoile horizontalement (aidez-vous avec la visée ). Ensuite, utilisez les marques  « inv AR » et « inv DEC » pour créer une correspondance entre les boutons de direction et le mouvement de l'étoile. Réglez les différentes paramètres. Mettez l'étoile à peu prés à la position centrale dans la fenêtre et continuez la calibration. Si vous avez déjà effectué la calibration, réglez l'intervalle de guidage et appuyez sur « Guide On/Off ».
+14
+15 Vérifiez les paramètres de guidage, mettez l'étoile à peu prés à la position centrale dans la fenêtre et réglez les paramètres de la caméra pour que ne soit pas saturée. Cliquez sur l'étoile quand vous êtes prêtes.
+16 Maintenant, le guidage automatique est en fonction. Appuyez sur « Guide On/Off » pour terminer.
+17 Le port COM sélectionné n'est pas valide ou est occupé. Vérifiez et de sélectionnez le port approprié.
+18 GiGiWxCapture va charger les paramètres enregistrés dans le fichier de configuration. Voulez-vous procéder?
+19 Voulez-vous enregistrer la configuration actuelle du logiciel?
+20 La position de l'étoile dans le deuxième point est trop proche à celle enregistrée dans le premier point: il est nécessaire de répéter la procédure d'acquisition de l'orientation du CCD.
+21 Calibration en cours... patientez SVP.
+22 Calibration terminée. Pour utiliser le guidage automatique, encadrez l'étoile guide, réglez l'intervalle de guide et appuyez sur "Guide On/Off".
+23 Calibration arrêtée. N'oubliez pas que vous pouvez insérer les paramètres de guidage manuellement dans les boites de textes ci-dessus. Afin d’utiliser le guidage automatique, encadrez l'étoile guide, réglez l'intervalle de guidage et appuyez sur "Guide On/Off".
+24 J'ai écrit ce logiciel principalement pour mes exigences, mais je serais ravi de savoir qui quelqu'un d'autre l’utilise. Si vous utilisez GigiWxCapture, veuillez me le communiquer en m'envoyant un commentaire. SVP complétez le module ci-dessous et appuyez sur "Send" (vous pouvez insérer seulement les informations que vous retenez nécessaires).
+25 Les paramètres du logiciel sont les mêmes que ceux dans le fichier de configuration. Voulez-vous enregistrer la nouvelle configuration?
+26 Configuration enregistrée.
+27 Certains paramètres ont été modifiés par rapport à ceux dans le fichier de configuration. Voulez-vous enregistrer la nouvelle configuration?
+28 La fenêtre de reprise a été individuée correctement?
+29 Voulez-vous confirmer les données insérées dans le module?
+30 Appuyez sur ok et cliquez sur l'étoile à mesurer (afin d'obtenir une analyse correcte, l'étoile ne doit pas être saturée).
+31 Voulez-vous enregistrer l'image de la fenêtre de reprise?
+32 L'image a été enregistrée sur ./savedBMP.
