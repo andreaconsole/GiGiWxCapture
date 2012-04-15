@@ -635,7 +635,7 @@ class Processes(object):
                 cumTime = 0
                 if direction == "w":
                     if invAR:
-                        while cumTime < msTimecorr:
+                        wh ile cumTime < msTimecorr:
                             self.dithIncrX -= self.testIncr
                             Sleep(self.testInt)
                             cumTime += self.testInt
