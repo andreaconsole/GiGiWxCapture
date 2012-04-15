@@ -1,5 +1,5 @@
 #!/bin/bash
 titolo=$(date +%Y%m%d)
 git add *
-echo $titolo
+git commit -m $titolo
 git push -u origin master
