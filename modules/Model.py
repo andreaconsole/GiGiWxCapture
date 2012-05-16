@@ -33,11 +33,11 @@ import sys
 import socket
 import numpy
 import wx.lib.plot as plot
-#import datetime #for speed analysis
+import datetime #for speed analysis
 import string
 strip = string.strip
 lower = string.lower
-#import serial
+#import serial #import moved in InitSerial function
 import operator
 add = operator.add
 sub = operator.sub
@@ -48,6 +48,8 @@ cos = math.cos
 tan = math.tan
 atan = math.atan
 pi = math.pi
+atan2 = math.atan2
+hypot = math.hypot
 
 class Configuration(object):
     def __init__(self, configFileName, tempFileName, languageFileName):
@@ -57,16 +59,21 @@ class Configuration(object):
         self.LANGUAGE_FILE_SIZE = 30
 
     def LoadConfiguration(self):
+        size = 50
         try:
-            self.configLines = []
-            self.defaultConfig = []
+            self.configLines = size*[""]
+            self.defaultConfig = size*[""]
             inputFile = open(self.configFileName,"r")
+            index = 0
             for line in inputFile.readlines():
-                self.configLines.append(strip(line))
-                self.defaultConfig.append(strip(line))
+                self.configLines[index] = strip(line)
+                self.defaultConfig[index] = strip(line)
+                index += 1
             inputFile.close()
             print self.defaultConfig
         except:
+            self.configLines = size*[""]
+            self.defaultConfig = size*[""]
             outputFile = open(os.path.abspath(self.configFileName),"w")
             outputFile.close()
     
@@ -97,8 +104,6 @@ class Configuration(object):
                 return True
         except:
             print os.path.abspath(self.languageFileName+"/"+which)
-            outputFile=open(os.path.abspath(self.languageFileName+"/"+which),"w")
-            outputFile.close()
             return False #file not valid
         
     def SaveTempFile(self, tempFile):
@@ -155,13 +160,16 @@ class Processes(object):
         self.memory=wx.MemoryDC()
         self.FWHM = 0
         #----------constS
-        # Warning: never forget that testMode is incopatible with dithering - always remember
+        # Warning: never forget that testMode is incompatible with dithering - always remember
         # to set dith interval to 0
         self.testMode = True
-        self.testAngle = 0 * pi / 180
-        self.testSpeed = 200
+        
 
     def InitSerial(self,which,baudrateVal = 9600):
+        try:
+            import serial
+        except:
+            print "pyserial not installed"
         try: #if which is a numerical value for port
             self.ser = serial.Serial(int(which), baudrate = baudrateVal, timeout=1)
         except: # if which is port name
@@ -297,30 +305,26 @@ class Processes(object):
             field="ERROR"
         return field
 
-    def SavePicture(self, window, winPosX, winPosY, winSizeX, winSizeY, nomefile, question, confirmation):
+    def SavePicture(self, winPosX, winPosY, winSizeX, winSizeY, nomefile):
             bitmap=wx.EmptyBitmap(winSizeX, winSizeY,-1)
             self.memory.SelectObject(bitmap)
             self.memory.Blit(0,0,winSizeX,winSizeY,self.dcScreen,winPosX,winPosY)
             self.memory.SelectObject(wx.NullBitmap)
             img=wx.ImageFromBitmap(bitmap)
-            dial = wx.MessageDialog(window, question, 'Question', wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
-            ret = dial.ShowModal()
-            if ret == wx.ID_YES:
-                img.SaveFile(nomefile,1)
-                dial=wx.MessageDialog(window, confirmation, 'Info', wx.OK | wx.ICON_INFORMATION)
-                dial.ShowModal()
+            img.SaveFile(nomefile,1)
 
-    def StarTrack(self, actualX, actualY, iter, reset):
+    def StarTrack(self, actualX, actualY, iter, reset, starFilter, winPosX, winPosY, winSizeX, winSizeY):
     # centers the star and finds fwhm; track radius = 9px
+    # 0<starFilter<=1. It's a filter against noise. The smaller the stronger.
+        MIN_DISTANCE = 35 #minimum distance from the border of window
         #create a copy of screen image in memory
-        UPDATE_SPEED = 0.33 # 0<UPDATE_SPEED<=1. It's a filter against noise. The smaller the stronger.
         self.memory.SelectObject(self.bitmap)
         self.memory.Blit(0,0,self.screenSizeX,self.screenSizeY,self.dcScreen,0,0)
         self.bitmap.CopyToBuffer(self.pixelTempBuffer, wx.BitmapBufferFormat_RGB) 
         if reset:
             self.pixelBuffer = self.pixelTempBuffer.astype(numpy.single)
         else:
-            self.pixelBuffer += UPDATE_SPEED*(self.pixelTempBuffer.astype(numpy.single)-self.pixelBuffer)
+            self.pixelBuffer += starFilter*(self.pixelTempBuffer.astype(numpy.single)-self.pixelBuffer)
         #pixelRGB = (pixelBuffer[3*(x+screenSizeX*y)], pixelBuffer[3*(x+screenSizeX*y)+1], pixelBuffer[3*(x+screenSizeX*y)+2]) 
 
         def pixelRedVal(x,y): #returns red value of the pixel x y (displaced by dispX, dispY)
@@ -392,9 +396,11 @@ class Processes(object):
             self.FWHM = 0.5*(fwhmX+fwhmY)
         else:
             self.FWHM = 0.8 * self.FWHM + 0.1 * (fwhmX+fwhmY)
-        #b1 = datetime.datetime.now() #for speed analysis
-        #print b1-a1 #for speed analysis
         self.memory.SelectObject(wx.NullBitmap) #erase memory copy of screen image
+        actualX = max(actualX, winPosX+MIN_DISTANCE)
+        actualX = min(actualX, winPosX+winSizeX-MIN_DISTANCE)
+        actualY = max(actualY, winPosY+MIN_DISTANCE)
+        actualY = min(actualY, winPosY+winSizeY-MIN_DISTANCE)
         return actualX, actualY, self.FWHM
     
     def Angolo(self,a,b):
@@ -405,9 +411,9 @@ class Processes(object):
         return angolo
     
     def CoordConvert(self,x,y,angolo): 
-        #converts x and y coord between two ref. sys with same origin and rotated of "angolo"
-        ipotenuse = sqrt(x**2+y**2)
-        deltaAngolo = self.Angolo(x,y) - angolo
+        #converts x and y coord between two ref. sys with same origin and rotated of "-angolo"
+        ipotenuse = hypot(x,y)
+        deltaAngolo = atan2(y, x) + angolo
         x1 = ipotenuse * cos(deltaAngolo)
         y1 = ipotenuse * sin(deltaAngolo) 
         return x1, y1
@@ -608,75 +614,53 @@ class Processes(object):
             n+=1
         outputFile.close()
 
-    def DitheringInit(self, maxDitherX, maxDitherY):
+    def DitheringInit(self, maxDith, dithStep):
         self.dithIncrX, self.dithIncrY = 0, 0
-        self.dithFactX, self.dithFactY = 1, 1
-        self.maxDitherX, self.maxDitherY = maxDitherX, maxDitherY
+        self.dithFactX, self.dithFactY = dithStep, dithStep
+        self.maxDith = maxDith
 
     def DitheringUpdate(self):
-        if self.maxDitherX>0 and self.maxDitherY>0:
+        if self.maxDitherX>0 and self.dithFactX<>0:
             self.dithIncrX += self.dithFactX
             self.dithIncrY += self.dithFactY
-        if abs(self.dithIncrX) >= self.maxDitherX:
+        if abs(self.dithIncrX) >= self.maxDith:
             self.dithFactX *= -1
-        if abs(self.dithIncrY) >= self.maxDitherY:
+        if abs(self.dithIncrY) >= self.maxDith+1:
             self.dithFactY *= -1
+        print "Dithering NOW: ", self.dithIncrX, self.dithIncrY
     
     def DitheringAdd(self, guideCenterX, guideCenterY):
         guideCenterX += self.dithIncrX
         guideCenterY += self.dithIncrY
+        #print "center moved of: ", self.dithIncrX, self.dithIncrY
         return guideCenterX, guideCenterY
 
-    def SendMountCommand(self, direction, msTimeCorr, controlMode, invAR, invDEC):
+    def SendMountCommand(self, direction, msTimeCorr, controlMode, invAR, invDEC, corrRateAR = 100, corrRateDEC = 100):
         # if msTimeCorr<0: send simply the command to the mount, else: move, sleeps msTimeCorr milliseconds, and stops
         #print "controlmode-invaAR-invDEC-direction-msTimeCorr",controlMode, invAR, invDEC, direction, msTimeCorr
-        if self.testMode: # audio control
-            if msTimeCorr != 0:
-                cumTime = 0
-                if direction == "w":
+        if self.testMode: # test control
+            if msTimeCorr > 0:
+                Sleep(msTimeCorr/1000)
+                if direction == "e":
                     if invAR:
-                        wh ile cumTime < msTimecorr:
-                            self.dithIncrX -= self.testIncr
-                            Sleep(self.testInt)
-                            cumTime += self.testInt
+                        self.dithIncrX += msTimeCorr / corrRateAR
                     else:
-                        while cumTime < msTimecorr:
-                            self.dithIncrX += self.testIncr
-                            Sleep(self.testInt)
-                            cumTime += self.testInt
-                elif direction == "e":
+                        self.dithIncrX -= msTimeCorr / corrRateAR
+                elif direction == "w":
                     if invAR:
-                        while cumTime < msTimecorr:
-                            self.dithIncrX += self.testIncr
-                            Sleep(self.testInt)
-                            cumTime += self.testInt
+                        self.dithIncrX -= msTimeCorr / corrRateAR
                     else:
-                        while cumTime < msTimecorr:
-                            self.dithIncrX -= self.testIncr
-                            Sleep(self.testInt)
-                            cumTime += self.testInt
+                        self.dithIncrX += msTimeCorr / corrRateAR
                 elif direction == "n":
                     if invDEC:
-                        while cumTime < msTimecorr:
-                            self.dithIncrY -= self.testIncr
-                            Sleep(self.testInt)
-                            cumTime += self.testInt
+                        self.dithIncrY -= msTimeCorr / corrRateDEC
                     else:
-                        while cumTime < msTimecorr:
-                            self.dithIncrY += self.testIncr
-                            Sleep(self.testInt)
-                            cumTime += self.testInt
+                        self.dithIncrY += msTimeCorr / corrRateDEC
                 elif direction == "s":
                     if invDEC:
-                        while cumTime < msTimecorr:
-                            self.dithIncrY += self.testIncr
-                            Sleep(self.testInt)
-                            cumTime += self.testInt
+                        self.dithIncrY += msTimeCorr / corrRateDEC
                     else:
-                        while cumTime < msTimecorr:
-                            self.dithIncrY -= self.testIncr
-                            Sleep(self.testInt)
-                            cumTime += self.testInt
+                        self.dithIncrY -= msTimeCorr / corrRateDEC
                 else: return
                 
         elif  controlMode == "serial": #serial control
@@ -754,7 +738,7 @@ class Processes(object):
         print "Kalman Filter reset done"
         
     
-    def KalmanFilter(self, deltaXmeasured, deltaYmeasured):
+    def KalmanFilter(self, deltaXmeasured, deltaYmeasured, millisecperpixel, R, Q):
         #
         # state variable X = [Dx; Dy]
         # measured value M = [Mx; My]
@@ -764,8 +748,9 @@ class Processes(object):
         # M = I*X + Z
         #
         #set filter parameters
-        R = 0.01
-        Q11, Q12, Q21, Q22 = 0.0005, 0.0005, 0.0005, 0.0005
+        R /= millisecperpixel
+        Q /= millisecperpixel
+        Q11, Q12, Q21, Q22 = Q, Q, Q, Q#0.005, 0.005, 0.005, 0.005
         #step1 -> X prediction: X = X; step2 -> P prediction: P(k+1) = A*P(k)*At+Q = P(k)+Q
         #print "P = [", self.P11, ",", self.P12, ";",  self.P21, ",", self.P22, "]"
         self.P11, self.P12, self.P21, self.P22 = self.P11+Q11, self.P12+Q12, self.P21+Q21, self.P22+Q22
@@ -789,55 +774,46 @@ class Processes(object):
         return self.deltaX, self.deltaY
        
     def PIDcontrolReset(self):
-        self.PIDstopWatch = wx.StopWatch()
-        self.PIDintegralX = 0
-        self.previousErrorX = 0
-        self.PIDintegralY = 0
-        self.previousErrorY = 0
+        self.deltaXolder = 0
+        self.deltaXold = 0
+        self.deltaYolder = 0
+        self.deltaYold = 0
         print "PID reset done"
     
-    def PIDcontrol(self, deltaX, deltaY, corrRateX, corrRateY, guideIntervalSec):
-        guideIntervalms = guideIntervalSec*1000
-        deltaTime = self.PIDstopWatch.Time() #in msec
-        self.PIDstopWatch.Start() #restart stopwatch
-        PIDderivativeX = (deltaX-self.previousErrorX)/deltaTime
-        self.previousErrorX = deltaX
-        PIDderivativeY = (deltaY-self.previousErrorY)/deltaTime
-        self.previousErrorY = deltaY
-        Ku = 2 #(Gain for sustained oscillations)
-        Tu = 2 * guideIntervalms #(Period of sustained oscillations)
-        #
-        # Zieger-Nichols 
-        #kp = 0.6   * Ku
-        #Ti = 0.5   * Tu
-        #Td = 0.125 * Tu
-        # Pessen Integral Rule
-        #kp = 0.7   * Ku
-        #Ti = 0.4   * Tu
-        #Td = 0.15  * Tu
-        # Some overshoot
-        #kp = 0.33  * Ku
-        #Ti = 0.5   * Tu
-        #Td = 0.33  * Tu
-        # No Overshoot
-        kp = 0.2   * Ku
-        Ti = 0.5   * Tu
-        Td = 0.33  * Tu
-        #
-        correctionX = int(kp*(deltaX + self.PIDintegralX/Ti + PIDderivativeX*Td) * corrRateX)
-        correctionY = int(kp*(deltaY + self.PIDintegralY/Ti + PIDderivativeY*Td) * corrRateY)
-        #correction limiter and anti-windup code
-        totalCorr = abs(correctionX) + abs(correctionY)
-        if totalCorr > 0.8 * guideIntervalms:
-            correctionX *= (0.8 * guideIntervalms/totalCorr)
-            correctionY *= (0.8 * guideIntervalms/totalCorr)
-            #anti-windup
+    def PIDcontrol(self, deltaX, deltaY, corrRateX, corrRateY, guideInterval, kp, kd):   # px, px, ms/px, ms/px, s  
+        a1 = datetime.datetime.now() #for speed analysis
+        #kp = 0.66
+        #kd = 0.33
+        # calculate 2nd order prevision
+        derivativeX = self.deltaXolder - 3*self.deltaXold + 2*deltaX 
+        #derivativeX = -self.deltaXold + *deltaX
+        if derivativeX > 0:
+            derivativeX = min(derivativeX,0.5*deltaX)
         else:
-            self.PIDintegralX += deltaX*deltaTime
-            self.PIDintegralY += deltaY*deltaTime
-        # derivative limiter
+            derivativeX = max(derivativeX,0.5*deltaX)
+        derivativeY = self.deltaYolder - 3*self.deltaYold + 2*deltaY
+        if derivativeY > 0:
+            derivativeY = min(derivativeY,0.5*deltaY)
+        else:
+            derivativeY = max(derivativeY,0.5*deltaY)
+        # apply correction
+        correctionX =int((kp*deltaX + kd*derivativeX) * corrRateX) 
+        correctionY =int((kp*deltaY + kd*derivativeY) * corrRateY) 
+        # memorize 
+        self.deltaXolder = self.deltaXold
+        self.deltaXold = deltaX
+        self.deltaYolder = self.deltaYold
+        self.deltaYold = deltaY
+        # output limiting
+        totalCorr = abs(correctionX) + abs(correctionY)
+        if totalCorr > 800 * guideInterval:
+            correctionX *= (800 * guideInterval/totalCorr)
+            correctionY *= (800 * guideInterval/totalCorr)
+            
+        b1 = datetime.datetime.now() #for speed analysis
+        print "pid", b1-a1 #for speed analysis
         return correctionX, correctionY
-    
+  
     def GuideGraphDraw(self, frm, data1, data2, data3, data4):
         client = plot.PlotCanvas(frm)
         frame_size = frm.GetClientSize()
@@ -857,7 +833,6 @@ class Processes(object):
             client.Draw(gc,  xAxis= (min(x),max(x+[10])), yAxis= (min(y)-0.1,max(y)+0.1))
         except:
             pass
-
         
     def GuideRoutineStart(self, controlMode):
         self.SendMountCommand("0", -1, controlMode, 0, 0) #set speed to min
@@ -869,25 +844,24 @@ class Processes(object):
     def GuideLastDECcorr(self):
         return self.DECcorr
 
-    def GuideRoutine(self, ARdrift, DECdrift, corrRateAR, corrRateDEC, enableDecGuide,
-                     invAR, invDEC, minARcorr, minDECcorr, controlMode, guideIntervalSec):
+    def GuideRoutine(self, ARdrift, DECdrift, corrRateAR, corrRateDEC,
+                     invAR, invDEC, minARcorr, minDECcorr, controlMode, guideIntervalSec, kp, kd):
         #calculate correction
-        self.ARcorr, self.DECcorr = self.PIDcontrol(ARdrift, DECdrift, corrRateAR, corrRateDEC, guideIntervalSec) 
+        self.ARcorr, self.DECcorr = self.PIDcontrol(ARdrift, DECdrift, corrRateAR, corrRateDEC, guideIntervalSec, kp, kd) 
         #print "correction before-after PID;", ARdrift, ";",DECdrift,";",ARdriftPID, ";",DECdriftPID
-        if not(enableDecGuide): self.DECcorr = 0
-        print "Corrections in ms:",round(self.ARcorr), round(self.DECcorr)
+        print "Drift: ",round(ARdrift,2), round(DECdrift,2),  "; Corrections in ms:",round(self.ARcorr), round(self.DECcorr)
         #---AR correction
         if abs(self.ARcorr) > minARcorr:
             if self.ARcorr > 0:
-                self.SendMountCommand("w", self.ARcorr, controlMode, invAR, invDEC)
+                self.SendMountCommand("w", self.ARcorr, controlMode, invAR, invDEC, corrRateAR, corrRateDEC) #corrRateAR, corrRateDEC used only for test mode
             else:
-                self.SendMountCommand("e", -self.ARcorr, controlMode, invAR, invDEC)
+                self.SendMountCommand("e", -self.ARcorr, controlMode, invAR, invDEC, corrRateAR, corrRateDEC) #corrRateAR, corrRateDEC used only for test mode
         #---DEC correction
         if abs(self.DECcorr) > minDECcorr:
             if self.DECcorr > 0:
-                self.SendMountCommand("n", self.DECcorr, controlMode, invAR, invDEC)
+                self.SendMountCommand("n", self.DECcorr, controlMode, invAR, invDEC, corrRateAR, corrRateDEC) #corrRateAR, corrRateDEC used only for test mode
             else:
-                self.SendMountCommand("s", -self.DECcorr, controlMode, invAR, invDEC)
+                self.SendMountCommand("s", -self.DECcorr, controlMode, invAR, invDEC, corrRateAR, corrRateDEC) #corrRateAR, corrRateDEC used only for test mode
         #print self.ARcorr, DECcorr
 
     def GuideCalibrationRoutineStart(self, controlMode):
@@ -1006,3 +980,4 @@ class Processes(object):
             selectedDir = dialog.GetPath()
         dialog.Destroy()
         return selectedDir
+    

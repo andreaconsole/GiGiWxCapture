@@ -1,11 +1,22 @@
 *This Version*
-GiGiWxCapture 1.1.0 PET-AC - 17/06/2011
+GiGiWxCapture 2.0
 RICORDA DI ABILITARE PYSERIAL - abilitare stdout
-*Updates*
+
+*Updates* 
+XX/06/2012 -> 2.0 -     code efficiency upgrade, improved algorithm for star position
+                        calculation, image noise filtering added, kalman filter added 
+                        to reduce  seeing effects, big  improvement to autoguide code
+                        (better and  full automatic calibration, autoguide  using  PD 
+                        control).
+05/10/2011 -> 1.1.0 -   added  PET-AC  function  (sperimental), minor  code  revision, 
+                        added output logging for remote debugging.
+10/04/2011 -> 1.0.3 -   removed circles, that work bad on windows 
+09/04/2011 -> 1.0.2 -   more  kind  on  resource with windows, cross instead of circle 
+                        during startracking, better video refresh
+27/03/2011 -> 1.0.1 -   auto shutdown for crosshair when changing tab
 17/03/2011 -> 1.0
-27/03/2011 -> 1.0.1: auto shutdown for crosshair when changing tab
-09/04/2011 -> 1.0.2: more kind on resource with windows, cross instead of circle during startracking, better video refresh
-10/04/2011 -> 1.0.3: removed circles, that work bad on windows 
-05/10/2011 -> 1.1.0: added PET-AC function (sperimental) Minor code revision, output logging added for remote debugging.
-XX/12/2011 -> 1.2.0: code efficiency upgrade, image noise filtering added, kalman filter added to reduce seeing effects,
-                     big improvement to autoguide code (better and full automatic calibration, autoguide using PID control.
+
+
+
+
+

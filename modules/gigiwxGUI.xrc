@@ -211,99 +211,105 @@
       </object>
       <object class="notebookpage">
         <object class="wxPanel" name="guide">
+          <object class="wxToggleButton" name="guidecalibration">
+            <pos>5,2</pos>
+            <size>150,25</size>
+            <label>Guide Calibr. On/Off</label>
+          </object>
           <object class="wxTextCtrl" name="calibrationsize">
-            <pos>5,37</pos>
-            <size>70,25</size>
+            <pos>5,30</pos>
+            <size>50,25</size>
             <value>150</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
-          <object class="wxToggleButton" name="guidecalibration">
-            <pos>5,10</pos>
-            <size>150,25</size>
-            <label>Guide Calibr. On/Off</label>
+          <object class="wxStaticText" name="calibrationsizet">
+            <pos>60,37</pos>
+            <size>110,15</size>
+            <label>calibr radius px</label>
+            <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="arguidevalue">
-            <pos>5,37</pos>
+            <pos>5,58</pos>
             <size>70,25</size>
             <value>1000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxTextCtrl" name="decguidevalue">
-            <pos>82,37</pos>
+            <pos>82,58</pos>
             <size>70,25</size>
             <value>1000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxCheckBox" name="invertar">
-            <pos>5,65</pos>
+            <pos>5,80</pos>
             <size>60,25</size>
             <label>Inv. AR</label>
             <fg>#ADD8E6</fg>
             <bg>#A52A2A</bg>
           </object>
           <object class="wxCheckBox" name="invertdec">
-            <pos>85,65</pos>
+            <pos>85,80</pos>
             <size>70,25</size>
             <label>Inv. DEC</label>
             <fg>#ADD8E6</fg>
             <bg>#A52A2A</bg>
           </object>
-          <object class="wxCheckBox" name="enableDec">
-            <pos>5,85</pos>
+          <object class="wxCheckBox" name="hisens">
+            <pos>5,100</pos>
             <size>150,25</size>
-            <label>Enable DEC guide</label>
+            <label>Hi sensibility</label>
             <fg>#ADD8E6</fg>
             <bg>#A52A2A</bg>
           </object>
           <object class="wxStaticLine" name="guideconfigline">
-            <pos>5,115</pos>
+            <pos>5,125</pos>
             <size>150,-1</size>
             <style>wxLI_HORIZONTAL</style>
           </object>
           <object class="wxTextCtrl" name="armincorr">
-            <pos>5,125</pos>
+            <pos>5,130</pos>
             <size>50,25</size>
             <value>200</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="armincorrt">
-            <pos>60,130</pos>
+            <pos>60,135</pos>
             <size>110,15</size>
             <label>min AR corr. ms</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="decmincorr">
-            <pos>5,152</pos>
+            <pos>5,157</pos>
             <size>50,25</size>
             <value>200</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="decmincorrt">
-            <pos>60,157</pos>
+            <pos>60,162</pos>
             <size>110,15</size>
             <label>min DEC corr. ms</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="guideinterval">
-            <pos>5,179</pos>
+            <pos>5,184</pos>
             <size>50,25</size>
             <value>2000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="guideintervalt">
-            <pos>60,184</pos>
+            <pos>60,189</pos>
             <size>110,15</size>
             <label>guide interval sec</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxStaticLine" name="ditheringline">
-            <pos>5,207</pos>
+            <pos>5,212</pos>
             <size>150,-1</size>
             <style>wxLI_HORIZONTAL</style>
           </object>
@@ -312,32 +318,31 @@
             <size>150,25</size>
             <label>Images Directory</label>
           </object>
-          
-          <object class="wxTextCtrl" name="armaxdithering">
+          <object class="wxTextCtrl" name="maxdithering">
             <pos>5,244</pos>
             <size>50,25</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
-          <object class="wxStaticText" name="armaxditheringt">
+          <object class="wxStaticText" name="maxditheringt">
             <pos>60,249</pos>
             <size>110,15</size>
-            <label>AR max dith. px</label>
+            <label>max dith. px</label>
             <fg>#ADD8E6</fg>
             <bg>#A56363</bg>
           </object>
-          <object class="wxTextCtrl" name="decmaxdithering">
+          <object class="wxTextCtrl" name="dithstep">
             <pos>5,271</pos>
             <size>50,25</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
-          <object class="wxStaticText" name="decmaxditheringt">
+          <object class="wxStaticText" name="dithstept">
             <pos>60,276</pos>
             <size>110,15</size>
-            <label>DEC max dith. px</label>
+            <label>dith. step, px</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="dithinterval">
@@ -459,30 +464,30 @@
             <size>150,-1</size>
             <style>wxLI_HORIZONTAL</style>
           </object>
-          <object class="wxTextCtrl" name="petacarmaxdithering">
+          <object class="wxTextCtrl" name="petacmaxdithering">
             <pos>5,222</pos>
             <size>50,25</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
-          <object class="wxStaticText" name="petacarmaxditheringt">
+          <object class="wxStaticText" name="petacmaxditheringt">
             <pos>60,227</pos>
             <size>110,15</size>
-            <label>AR max dith. px</label>
+            <label>max dith. px</label>
             <fg>#ADD8E6</fg>
           </object>
-          <object class="wxTextCtrl" name="petacdecmaxdithering">
+          <object class="wxTextCtrl" name="petacdithstep">
             <pos>5,249</pos>
             <size>50,25</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
-          <object class="wxStaticText" name="petacdecmaxditheringt">
+          <object class="wxStaticText" name="petacdithstep">
             <pos>60,254</pos>
             <size>110,15</size>
-            <label>DEC max dith. px</label>
+            <label>dith step, px</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxToggleButton" name="petaconoff">
@@ -519,8 +524,12 @@
             <size>150,25</size>
             <label>Zoom 2X</label>
           </object>
+          <object class="wxStaticLine" name="line">
+            <pos>5,90</pos>
+            <size>150,-1</size>
+          </object>
           <object class="wxButton" name="takeapicture">
-            <pos>5,85</pos>
+            <pos>5,95</pos>
             <size>150,25</size>
             <label>Take a Picture</label>
             <font>
@@ -533,14 +542,61 @@
               <encoding/>
             </font>
           </object>
+          <object class="wxTextCtrl" name="pictureno">
+            <pos>10,125</pos>
+            <size>40,25</size>
+            <value>1</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="picturenot">
+            <pos>55,130</pos>
+            <size>-1,15</size>
+            <label># of pictures</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxTextCtrl" name="pictureint">
+            <pos>10,155</pos>
+            <size>40,25</size>
+            <value>1</value>
+            <bg>#A56363</bg>
+            <style>wxSIMPLE_BORDER</style>
+          </object>
+          <object class="wxStaticText" name="pictureintt">
+            <pos>55,160</pos>
+            <size>-1,15</size>
+            <label>secs btwn pics</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxCheckBox" name="picfullscreen">
+            <pos>5,185</pos>
+            <size>150,25</size>
+            <label>Capture whole screen</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxGauge" name="picprogress">
+            <pos>5,215</pos>
+            <size>150,25</size>
+            <range>100</range>
+            <value>0</value>
+            <shadow>0</shadow>
+            <bezel>0</bezel>
+            <fg>#A52A2A</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxStaticLine" name="line">
+            <pos>5,245</pos>
+            <size>150,-1</size>
+          </object>
           <object class="wxStaticText" name="pixellabel">
-            <pos>5,130</pos>
+            <pos>5,280</pos>
             <size>110,15</size>
             <label>Pixel color: RGB</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxStaticBox" name="fieldcalculator">
-            <pos>5,160</pos>
+            <pos>5,310</pos>
             <size>150,115</size>
             <label>  Field of view calculator</label>
             <fg>#ADD8E6</fg>
@@ -555,59 +611,59 @@
             </font>
           </object>
           <object class="wxTextCtrl" name="ccdw">
-            <pos>10,180</pos>
-            <size>30,25</size>
+            <pos>10,330</pos>
+            <size>40,25</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxTextCtrl" name="ccdh">
-            <pos>52,180</pos>
-            <size>30,25</size>
+            <pos>62,330</pos>
+            <size>40,25</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="ccddim">
-            <pos>43,185</pos>
+            <pos>53,335</pos>
             <size>-1,15</size>
             <label>x</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxStaticText" name="ccddim">
-            <pos>85,185</pos>
+            <pos>105,335</pos>
             <size>-1,15</size>
-            <label>CCD dim mm</label>
+            <label>CCD dim</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="focal">
-            <pos>10,210</pos>
+            <pos>10,360</pos>
             <size>40,25</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="focallenght">
-            <pos>55,215</pos>
+            <pos>55,365</pos>
             <size>-1,15</size>
             <label>Focal Lenght mm</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="field">
-            <pos>10,240</pos>
+            <pos>10,390</pos>
             <size>-1,25</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER|wxTE_READONLY</style>
           </object>
           <object class="wxStaticText" name="fieldtext">
-            <pos>115,245</pos>
+            <pos>115,395</pos>
             <size>30,25</size>
             <label>field</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxRadioBox" name="speed1">
-            <pos>5,280</pos>
+            <pos>5,430</pos>
             <size>150,145</size>
             <label>   Mount Control</label>
             <dimension>1</dimension>
@@ -631,30 +687,30 @@
             <style>wxRA_SPECIFY_ROWS</style>
           </object>
           <object class="wxStaticBitmap" name="mountstop1">
-            <pos>30,320</pos>
+            <pos>30,470</pos>
             <size>100,100</size>
             <bitmap>../images/stop.bmp</bitmap>
           </object>
           <object class="wxStaticBitmap" name="mountleft1">
-            <pos>30,320</pos>
+            <pos>30,470</pos>
             <size>100,100</size>
             <bitmap>../images/left.bmp</bitmap>
             <hidden>1</hidden>
           </object>
           <object class="wxStaticBitmap" name="mountright1">
-            <pos>30,320</pos>
+            <pos>30,470</pos>
             <size>100,100</size>
             <bitmap>../images/right.bmp</bitmap>
             <hidden>1</hidden>
           </object>
           <object class="wxStaticBitmap" name="mountup1">
-            <pos>30,320</pos>
+            <pos>30,470</pos>
             <size>100,100</size>
             <bitmap>../images/up.bmp</bitmap>
             <hidden>1</hidden>
           </object>
           <object class="wxStaticBitmap" name="mountdown1">
-            <pos>30,320</pos>
+            <pos>30,470</pos>
             <size>100,100</size>
             <bitmap>../images/down.bmp</bitmap>
             <hidden>1</hidden>

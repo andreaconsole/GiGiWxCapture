@@ -1,12 +1,11 @@
 ITA
-* avviare GiGiWxCapture (GiGiWxCapture.py, GiGiWxCapture.pyw su Windows) e il software di gestione del CCD (che deve essere disponibile);
-* premere il pulsante "Select Capture Window": si aprirÃ  una finestra semitrasparente denominata "Vampire Window";
-* posizionare la "Vampire Window" all'interno della finestra del software di gestione del CCD (lo sfondo deve essere nero, quindi con il sensore disconnesso o coperto);
+* avvia GiGiWxCapture (GiGiWxCapture.py, GiGiWxCapture.pyw su Windows) e il software di gestione del CCD (che deve essere disponibile);
+* premi il pulsante "Select Capture Window": si aprirà una finestra semitrasparente denominata "Vampire Window";
+* posiziona la "Vampire Window" all'interno della finestra del software di gestione del CCD (lo sfondo deve essere nero, quindi con il sensore disconnesso o coperto);
 * premere il pulsante "Automatic" e attendere che il programma individui i bordi della finestra di acquisizione (in alternativa è possibile ridimensionare manualmente la finestra e poi premere "Manual");
 * verificare il corretto posizionamento della "Vampire Window" (ma non è necessario essere pignoli).
 ---
 vedi andreaconsole.altervista.org per ulteriori informazioni
-
 
 
 ENG
@@ -19,12 +18,21 @@ ENG
 see andreaconsole.altervista.org for further informations
 
 
- 
+ESP
+* ejecute GiGiWxCapture (GiGiWxCapture.py, GiGiWxCapture.pyw on Windows) y ejecute su programa para la gestión del CCD (que tiene que serdisponible);
+* pulse la tecla "Select Capture Window". Se abrirá una ventana traslúcida que se llama "Vampire Window";
+* ponga la ventana "Vampire Window" en el centro de la ventana del programa de gestión del CCD (el fondo debería ser negro, entonces tiene que cobrir o desconnectar el CCD);
+* pulse la tecla "Automatic" y espera que el programa encuetre los bordes de la ventana (o puede cambiar manualmente el tamaño de la ventana "Vampire Window" y después pulsar "Manual");
+* comprobe que la ventana "Vampire Window" sea bien posicionada (pero no tiene que ser muy exigente).
+---
+vea andreaconsole.altervista.org para más información
+
+
 FRA
 * lancez GiGiWxCapture (GiGiWxCapture.py, GiGiWxCapture.pyw pour Windows) et lancez le logiciel pour la gestion des CCD (qui devrait être disponible);
 * Appuyez sur la touche "Select fenêtre de capture" bouton. Cela ouvrira une fenêtre translucide appelé "Vampire Window";
 * la position "Vampire Window" dans la fenêtre CCD logiciel de gestion (le fond doit être de couleur noire, puis avec le capteur débranché ou couvert);
 * Appuyez sur le bouton "Automatique" et attendez que le programme identifie les bords de la fenêtre d'acquisition (ou vous pouvez redimensionner manuellement la fenêtre et appuyez sur "Manual");
-* vérifier le bon positionnement de la fenêtre "Vampire" (vous n'avez pas besoin d'être pointilleux).
+* Vérifier le bon positionnement de la fenêtre "Vampire" (vous n'avez pas besoin d'être pointilleux).
 ---
 voir andreaconsole.altervista.org pour plus d'informations

@@ -35,6 +35,7 @@ path = os.path
 listdir = os.listdir
 import sys
 from time import ctime
+from math import sqrt
 
 import View
 import Model
@@ -106,11 +107,12 @@ class Controller(object):
         self.MainFrame.guideInterval = xrc.XRCCTRL(self.MainFrame,"guideinterval")
         self.MainFrame.invertAr = xrc.XRCCTRL(self.MainFrame,"invertar")
         self.MainFrame.invertDec = xrc.XRCCTRL(self.MainFrame,"invertdec")
-        self.MainFrame.enableDec = xrc.XRCCTRL(self.MainFrame,"enableDec")
+        self.MainFrame.hiSens = xrc.XRCCTRL(self.MainFrame,"hisens")
+        self.MainFrame.hiSens.Bind(wx.EVT_CHECKBOX, self.FilterChanged)
         self.MainFrame.calibrationSize = xrc.XRCCTRL(self.MainFrame,"calibrationsize")
         self.MainFrame.Bind(wx.EVT_BUTTON, self.SetImagesDir, id=xrc.XRCID("imagesdir"))
-        self.MainFrame.arMaxDithering = xrc.XRCCTRL(self.MainFrame,"armaxdithering")
-        self.MainFrame.decMaxDithering = xrc.XRCCTRL(self.MainFrame,"decmaxdithering")
+        self.MainFrame.maxDithering = xrc.XRCCTRL(self.MainFrame,"maxdithering")
+        self.MainFrame.dithstep = xrc.XRCCTRL(self.MainFrame,"dithstep")
         self.MainFrame.dithInterval = xrc.XRCCTRL(self.MainFrame, "dithinterval")
         self.MainFrame.guideInstr = xrc.XRCCTRL(self.MainFrame,"guideinstr")
         self.MainFrame.guideOnOff = xrc.XRCCTRL(self.MainFrame,"guideonoff")
@@ -131,8 +133,8 @@ class Controller(object):
         self.MainFrame.petacValue = xrc.XRCCTRL(self.MainFrame,"petacvalue")
         self.MainFrame.petacMinCorr = xrc.XRCCTRL(self.MainFrame,"petacmincorr")
         self.MainFrame.petacMountLowSpeed = xrc.XRCCTRL(self.MainFrame,"petacmountlowspeed")
-        self.MainFrame.petacArMaxDithering = xrc.XRCCTRL(self.MainFrame,"petacarmaxdithering")
-        self.MainFrame.petacDecMaxDithering = xrc.XRCCTRL(self.MainFrame,"petacdecmaxdithering")
+        self.MainFrame.petacMaxDithering = xrc.XRCCTRL(self.MainFrame,"petacmaxdithering")
+        self.MainFrame.petacDithStep = xrc.XRCCTRL(self.MainFrame,"petacdithstep")
         self.MainFrame.petacInstr = xrc.XRCCTRL(self.MainFrame,"petacinstr")
         self.MainFrame.petacOnOff = xrc.XRCCTRL(self.MainFrame,"petaconoff")
         self.MainFrame.petacOnOff.Enabled = False
@@ -146,6 +148,11 @@ class Controller(object):
         self.MainFrame.takePicture = xrc.XRCCTRL(self.MainFrame, "takeapicture")
         self.MainFrame.Bind(wx.EVT_TOGGLEBUTTON, self.FwhmStart, id=xrc.XRCID("fwhm"))
         self.MainFrame.Bind(wx.EVT_BUTTON, self.SavePicture, id=xrc.XRCID("takeapicture"))
+        self.MainFrame.pictureNo = xrc.XRCCTRL(self.MainFrame, "pictureno")
+        self.MainFrame.pictureInt = xrc.XRCCTRL(self.MainFrame, "pictureint")
+        self.MainFrame.picProgress = xrc.XRCCTRL(self.MainFrame, "picprogress")
+        self.MainFrame.picFullScreen = xrc.XRCCTRL(self.MainFrame, "picfullscreen")
+        self.MainFrame.picFullScreen.Bind(wx.EVT_CHECKBOX, self.PicFullScreen)
         self.MainFrame.pixelLabel = xrc.XRCCTRL(self.MainFrame, "pixellabel")
         self.MainFrame.ccdW = xrc.XRCCTRL(self.MainFrame, "ccdw")
         self.MainFrame.ccdH = xrc.XRCCTRL(self.MainFrame, "ccdh")
@@ -224,6 +231,8 @@ class Controller(object):
         self.STAR_TRACK_INTERVAL = 500 #millisecs: time between startrack calls
         self.MIN_CALIBRATION_TIME = 300 #secs: min time for petac calibration
         self.MIN_SHIFT_TO_GUIDE = 2 #px: minimum difference between star position that reveals frame change
+        self.DEFAULT_STAR_FILTER = 0.60
+        self.HI_SENS_STAR_FILTER = 0.33 #optimizated for a 2 sec guide interval and a 500ms between startracks
         #----------InitVar
         self.alphaAmount=254
         self.starPosition="s"
@@ -234,6 +243,9 @@ class Controller(object):
         self.drawClock = wx.Timer(self.MainFrame)
         self.drawClock.Start(10)
         self.MainFrame.Bind(wx.EVT_TIMER, self.DrawClock, self.drawClock)
+        
+        self.picSaveClock = wx.Timer(self.MainFrame)
+        self.MainFrame.Bind(wx.EVT_TIMER, self.PicSaveClock, self.picSaveClock)
 
         self.calcClock = wx.Timer(self.MainFrame)
         self.calcClock.Start(self.CALC_INTERVAL)
@@ -270,6 +282,7 @@ class Controller(object):
         self.ditherCount = 0
         self.lastMoveTime = 0
         self.movementTime = 0
+        self.FilterChanged(True)
         self.Processes.KalmanFilterReset()
         self.Processes.PIDcontrolReset()
         self.SetStatus("idle")
@@ -306,23 +319,46 @@ class Controller(object):
             dial.ShowModal()
 
     def ValuesFromConfig(self):
+        self.MainFrame.languagecombo.Value = "eng"
+        self.MainFrame.mountportcombo.Value = "none"
+        self.MainFrame.invertCorrection.Value = False
+        self.MainFrame.arMinCorr.Value = "50"
+        self.MainFrame.decMinCorr.Value = "50"
+        self.MainFrame.guideInterval.Value = "2"
+        self.MainFrame.maxDithering.Value = "2"
+        self.MainFrame.petacMaxDithering.Value = "2"
+        self.MainFrame.DithStep.Value = "1"
+        self.MainFrame.petacDithStep.Value = "1"
+        self.MainFrame.dithInterval.Value = "10"
+        self.MainFrame.petacMinCorr.Value = "50"
+        self.MainFrame.petacMountLowSpeed.Value = "1.0"
+        self.MainFrame.hiSens.Value = False
+        self.MainFrame.calibrationSize.Value = "150"
+        self.R = 20
+        self.Q = 1
+        self.kp = 0.66
+        self.kd = 0.33
         self.configLines = self.Configuration.ConfigLines()
         try:
-            self.MainFrame.languagecombo.Value =strip(self.configLines[5])
-            self.MainFrame.mountportcombo.Value = strip(self.configLines[7])
-            self.MainFrame.invertCorrection.Value = bool(self.Processes.ExtractInt(self.configLines[9]))
-            self.MainFrame.arMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[11]))
-            self.MainFrame.decMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[13]))
-            self.MainFrame.guideInterval.Value = str(self.Processes.ExtractInt(self.configLines[15]))
-            self.MainFrame.arMaxDithering.Value = str(self.Processes.ExtractInt(self.configLines[17]))
-            self.MainFrame.petacArMaxDithering.Value = str(self.Processes.ExtractInt(self.configLines[17]))
-            self.MainFrame.decMaxDithering.Value = str(self.Processes.ExtractInt(self.configLines[19]))
-            self.MainFrame.petacDecMaxDithering.Value = str(self.Processes.ExtractInt(self.configLines[19]))
-            self.MainFrame.dithInterval.Value = str(self.Processes.ExtractInt(self.configLines[21]))
-            self.MainFrame.petacMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[23]))
-            self.MainFrame.petacMountLowSpeed.Value = str(self.Processes.ExtractFloat(self.configLines[25]))
-            self.MainFrame.enableDec.Value = bool(self.Processes.ExtractInt(self.configLines[27]))
-            self.MainFrame.calibrationSize.Value = str(self.Processes.ExtractInt(self.configLines[29]))
+            if self.configLines[5]<>"": self.MainFrame.languagecombo.Value = strip(self.configLines[5])
+            if self.configLines[7]<>"": self.MainFrame.mountportcombo.Value = strip(self.configLines[7])
+            if self.configLines[9]<>"": self.MainFrame.invertCorrection.Value = bool(self.Processes.ExtractInt(self.configLines[9]))
+            if self.configLines[11]<>"": self.MainFrame.arMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[11]))
+            if self.configLines[13]<>"": self.MainFrame.decMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[13]))
+            if self.configLines[15]<>"": self.MainFrame.guideInterval.Value = str(self.Processes.ExtractInt(self.configLines[15]))
+            if self.configLines[17]<>"": self.MainFrame.maxDithering.Value = str(self.Processes.ExtractInt(self.configLines[17]))
+            if self.configLines[17]<>"": self.MainFrame.petacMaxDithering.Value = str(self.Processes.ExtractInt(self.configLines[17]))
+            if self.configLines[19]<>"": self.MainFrame.dithStep.Value = str(self.Processes.ExtractInt(self.configLines[19]))
+            if self.configLines[19]<>"": self.MainFrame.petacDithStep.Value = str(self.Processes.ExtractInt(self.configLines[19]))
+            if self.configLines[21]<>"": self.MainFrame.dithInterval.Value = str(self.Processes.ExtractInt(self.configLines[21]))
+            if self.configLines[23]<>"": self.MainFrame.petacMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[23]))
+            if self.configLines[25]<>"": self.MainFrame.petacMountLowSpeed.Value = str(self.Processes.ExtractFloat(self.configLines[25]))
+            if self.configLines[27]<>"": self.MainFrame.hiSens.Value = bool(self.Processes.ExtractInt(self.configLines[27]))
+            if self.configLines[29]<>"": self.MainFrame.calibrationSize.Value = str(self.Processes.ExtractInt(self.configLines[29]))
+            if self.configLines[31]<>"": self.R = self.Processes.ExtractFloat(self.configLines[31])
+            if self.configLines[32]<>"": self.Q = self.Processes.ExtractFloat(self.configLines[32])
+            if self.configLines[34]<>"": self.kp = self.Processes.ExtractFloat(self.configLines[34])
+            if self.configLines[35]<>"": self.kd = self.Processes.ExtractFloat(self.configLines[35])
         except:
             pass
             
@@ -333,13 +369,17 @@ class Controller(object):
         self.configLines[11] = str(self.Processes.ExtractInt(self.MainFrame.arMinCorr.Value))
         self.configLines[13] = str(self.Processes.ExtractInt(self.MainFrame.decMinCorr.Value))
         self.configLines[15] = str(self.Processes.ExtractInt(self.MainFrame.guideInterval.Value))
-        self.configLines[17] = str(self.Processes.ExtractInt(self.MainFrame.arMaxDithering.Value))
-        self.configLines[19] = str(self.Processes.ExtractInt(self.MainFrame.decMaxDithering.Value))
+        self.configLines[17] = str(self.Processes.ExtractInt(self.MainFrame.maxDithering.Value))
+        self.configLines[19] = str(self.Processes.ExtractInt(self.MainFrame.DithStep.Value))
         self.configLines[21] = str(self.Processes.ExtractInt(self.MainFrame.dithInterval.Value))
         self.configLines[23] = str(self.Processes.ExtractInt(self.MainFrame.petacMinCorr.Value))
         self.configLines[25] = str(self.Processes.ExtractFloat(self.MainFrame.petacMountLowSpeed.Value))
-        self.configLines[27] = str(self.Processes.ExtractInt(str(int(self.MainFrame.enableDec.Value))))
+        self.configLines[27] = str(self.Processes.ExtractInt(str(int(self.MainFrame.hiSens.Value))))
         self.configLines[29] = str(self.Processes.ExtractInt(self.MainFrame.calibrationSize.Value))
+        self.configLines[31] = str(self.R)
+        self.configLines[32] = str(self.Q)
+        self.configLines[34] = str(self.kp)
+        self.configLines[35] = str(self.kd)
         self.Configuration.ConfigLinesUpdate(self.configLines)
     
     def LoadTemp(self):
@@ -405,9 +445,9 @@ class Controller(object):
         elif status == "camera_orientation_first_star":
             self.starTracking = False
             self.dcScreen.SetPen(wx.Pen(wx.RED,2))
-            self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),12, 20))
-            self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True)
-            self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),12, 20))
+            self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),21, 30))
+            self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
+            self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),21, 30))
             self.xo, self.yo = self.actualX, self.actualY
             self.SetStatus("camera_orientation_first_star_acq")
 
@@ -417,9 +457,9 @@ class Controller(object):
 
         elif status == "camera_orientation_second_star_acq":
             self.dcScreen.SetPen(wx.Pen(wx.RED,2))
-            self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),12, 20))
-            self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True)
-            self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),12, 20))
+            self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),21, 30))
+            self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
+            self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),21, 30))
             self.xf, self.yf = self.actualX, self.actualY
             self.a = self.xf - self.xo
             self.b = self.yf - self.yo
@@ -452,7 +492,7 @@ class Controller(object):
         elif status == "alignment_star_tracking":
             self.starTracking = True
             self.calcClock.Start(self.STAR_TRACK_INTERVAL)
-            self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True)
+            self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
             self.xo = -1
 
         elif status == "alignment_calc_ready":
@@ -485,10 +525,10 @@ class Controller(object):
             self.MainFrame.guideInstr.Value = self.testo[15]
 
         elif self.status == "guiding":
-            self.arErrList = [(0,0)]
-            self.decErrList = [(0,0)]
-            self.arCorrList = [(0,0)]
-            self.decCorrList = [(0,0)]
+            self.arErrList = [(0.0,0.0)]
+            self.decErrList = [(0.0,0.0)]
+            self.arCorrList = [(0.0,0.0)]
+            self.decCorrList = [(0.0,0.0)]
             self.Processes.KalmanFilterReset()
             self.Processes.PIDcontrolReset()
             self.MainFrame.guideCalibrationOnOff.Enabled = False
@@ -499,18 +539,18 @@ class Controller(object):
             self.MainFrame.guideInterval.Enabled = False
             self.MainFrame.invertAr.Enabled = False
             self.MainFrame.invertDec.Enabled = False
-            self.MainFrame.arMaxDithering.Enabled = False
-            self.MainFrame.decMaxDithering.Enabled = False
+            self.MainFrame.maxDithering.Enabled = False
+            self.MainFrame.dithStep.Enabled = False
             self.MainFrame.dithInterval.Enabled= False
             self.meanARdrift = 0
             self.meanDECdrift = 0
             self.Processes.GuideRoutineStart(self.controlMode)
-            self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True)
+            self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
             self.guideCenterX, self.guideCenterY = self.actualX, self.actualY
             self.corrRateAR, self.corrRateDEC = float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value)
             self.minARcorr, self.minDECcorr = float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value)
             self.dithInterval = float(self.MainFrame.dithInterval.Value)
-            self.Processes.DitheringInit(float(self.MainFrame.arMaxDithering.Value), float(self.MainFrame.decMaxDithering.Value))
+            self.Processes.DitheringInit(float(self.MainFrame.maxDithering.Value), float(self.MainFrame.dithStep.Value))
             self.starTracking = True
             self.ditherCount = len(listdir(self.imagesPath))
             self.guideIntervalSec = float(self.MainFrame.guideInterval.Value)
@@ -533,8 +573,8 @@ class Controller(object):
             self.MainFrame.petacInvertDec.Enabled = False
             self.MainFrame.petacMinCorr.Enabled = False
             self.MainFrame.petacMountLowSpeed.Enabled = False
-            self.MainFrame.petacArMaxDithering.Enabled = False
-            self.MainFrame.petacDecMaxDithering.Enabled = False
+            self.MainFrame.petacMaxDithering.Enabled = False
+            self.MainFrame.petacDithStep.Enabled = False
             self.MainFrame.petacValue.Enabled = True
             self.MainFrame.petacOnOff.Enabled = False
             self.petacVal = float(self.MainFrame.petacValue.Value) #retrieve last petac value
@@ -557,12 +597,12 @@ class Controller(object):
             self.MainFrame.petacValue.Enabled = False
             self.MainFrame.petacMinCorr.Enabled = False
             self.MainFrame.petacMountLowSpeed.Enabled = False
-            self.MainFrame.petacArMaxDithering.Enabled = False
-            self.MainFrame.petacDecMaxDithering.Enabled = False
+            self.MainFrame.petacMaxDithering.Enabled = False
+            self.MainFrame.petacDithStep.Enabled = False
             self.guideCenterX, self.guideCenterY =self.actualX, self.actualY
             self.corrRateAR, self.corrRateDEC = float(self.MainFrame.petacArGuideValue.Value), float(self.MainFrame.petacDecGuideValue.Value)
             self.minARcorr, self.minDECcorr = float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value)
-            self.Processes.DitheringInit(float(self.MainFrame.petacArMaxDithering.Value), float(self.MainFrame.petacDecMaxDithering.Value))
+            self.Processes.DitheringInit(float(self.MainFrame.petacMaxDithering.Value), float(self.MainFrame.petacDithStep.Value))
             self.guideIntervalSec = float(self.MainFrame.guideInterval.Value)
             self.petacVal = float(self.MainFrame.petacValue.Value) #retrieve last petac value
             self.calcClock.Stop()
@@ -586,8 +626,8 @@ class Controller(object):
             self.MainFrame.guideInterval.Enabled = True
             self.MainFrame.invertAr.Enabled = True
             self.MainFrame.invertDec.Enabled = True
-            self.MainFrame.arMaxDithering.Enabled = True
-            self.MainFrame.decMaxDithering.Enabled = True
+            self.MainFrame.maxDithering.Enabled = True
+            self.MainFrame.dithStep.Enabled = True
             self.MainFrame.dithInterval.Enabled = True
             self.MainFrame.petacguideCalibrationOnOff.Enabled = True
             self.MainFrame.petacOnOff.Enabled = True
@@ -599,8 +639,8 @@ class Controller(object):
             self.MainFrame.petacValue.Enabled = True
             self.MainFrame.petacMinCorr.Enabled = True
             self.MainFrame.petacMountLowSpeed.Enabled = True
-            self.MainFrame.petacArMaxDithering.Enabled = True
-            self.MainFrame.petacDecMaxDithering.Enabled = True
+            self.MainFrame.petacMaxDithering.Enabled = True
+            self.MainFrame.petacDithStep.Enabled = True
             self.MainFrame.crosshair.SetValue(False)
             self.petacFlag = False
             self.MainFrame.fwhmCalc.Label = "FWHM measure"
@@ -862,11 +902,11 @@ class Controller(object):
             self.testo = tuple(self.Configuration.TextLines())
             print "language ", self.MainFrame.languagecombo.Value, " loaded"
         else:
-            dial=wx.MessageDialog(self.MainFrame.VampireFrame, "Language file not valid - no text available", 'Info', wx.ICON_ERROR | wx.OK)
+            dial=wx.MessageDialog(self.MainFrame, "Language file not valid - no text available", 'Info', wx.ICON_ERROR | wx.OK)
             dial.SetIcon(self.GiGiWxIcon)
             dial.ShowModal()
             #empty testo tuple bigger than ever possible
-            self.testo =("no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text",
+            self.testo = ("no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text",
                          "no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text",
                          "no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text",
                          "no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text",
@@ -927,8 +967,8 @@ class Controller(object):
         self.MainFrame.invertDec.Value = self.MainFrame.petacInvertDec.Value
         self.MainFrame.arGuideValue.Value = self.MainFrame.petacArGuideValue.Value
         self.MainFrame.decGuideValue.Value = self.MainFrame.petacDecGuideValue.Value
-        self.MainFrame.arMaxDithering.Value = self.MainFrame.petacArMaxDithering.Value
-        self.MainFrame.decMaxDithering.Value = self.MainFrame.petacDecMaxDithering.Value
+        self.MainFrame.maxDithering.Value = self.MainFrame.petacMaxDithering.Value
+        self.MainFrame.dithStep.Value = self.MainFrame.petacDithStep.Value
         self.invAR, self.invDEC = self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value
 
     def PetacChangeCommonControl(self,evt):
@@ -936,8 +976,8 @@ class Controller(object):
         self.MainFrame.petacInvertDec.Value = self.MainFrame.invertDec.Value
         self.MainFrame.petacArGuideValue.Value = self.MainFrame.arGuideValue.Value
         self.MainFrame.petacDecGuideValue.Value = self.MainFrame.decGuideValue.Value
-        self.MainFrame.petacArMaxDithering.Value = self.MainFrame.arMaxDithering.Value
-        self.MainFrame.petacDecMaxDithering.Value = self.MainFrame.decMaxDithering.Value
+        self.MainFrame.petacMaxDithering.Value = self.MainFrame.maxDithering.Value
+        self.MainFrame.petacDithStep.Value = self.MainFrame.dithStep.Value
         self.invAR, self.invDEC = self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value
 
     def SetCalType(self,evt,which):
@@ -1001,6 +1041,13 @@ class Controller(object):
             
     def SetMountSpeed(self,evt):
         self.Processes.SendMountCommand(str(evt.GetInt()), -1, self.controlMode, 0, 0)
+        
+    def FilterChanged(self,evt):
+        if self.MainFrame.hiSens.Value:
+           self.starFilter = self.DEFAULT_STAR_FILTER     
+        else:
+           self.starFilter = self.HI_SENS_STAR_FILTER
+        print "starfilter value = ",self.starFilter
         
     def SetImagesDir(self,evt):
         self.imagesPath = self.Processes.DirChoose(self.imagesPath, self.testo[39])
@@ -1085,10 +1132,10 @@ class Controller(object):
             else:
                 #check if picture is changed in order to apply guide and dithering (a startrack will eventually show a difference)
                 latestX, latestY = self.actualX, self.actualY
-                self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 10, True)
+                self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 10, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
                 if abs(self.actualX-latestX) >= self.MIN_SHIFT_TO_GUIDE or abs(self.actualY-latestY) >= self.MIN_SHIFT_TO_GUIDE:
                     print "Dithering..."
-                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, self.corrRateAR, self.corrRateDEC, self.MainFrame.enableDec.Value,
+                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, self.corrRateAR, self.corrRateDEC,
                                                                         self.invAR, self.invDEC, self.minARcorr, self.minDECcorr, self.controlMode, self.guideIntervalSec))
                 #apply pet-ac correction if needed
                 if self.lastMoveTime > 0 and self.petacVal > 0:
@@ -1097,13 +1144,19 @@ class Controller(object):
                 self.MainFrame.petacTab.WarpPointer(self.PETAC_BUTTON_CENTER_X, self.PETAC_BUTTON_CENTER_Y) #center the mouse in the button
             
     def SavePicture(self,evt):
-        if self.hideVampire:
-            c = ctime()
-            c = c.replace(" ","_")
-            c = c.replace(":","-")
-            filename="../savedBMP/GiGiWxCapture_" + c + ".bmp"
-            self.Processes.SavePicture(self.MainFrame.VampireFrame, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, filename, self.testo[31], self.testo[32])
-
+        if self.hideVampire or self.MainFrame.picFullScreen.Value:
+            dial = wx.MessageDialog(self.MainFrame, self.testo[31], 'Question', wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
+            ret = dial.ShowModal()
+            if ret == wx.ID_YES:
+                self.picTime = ctime()
+                self.picTime = self.picTime.replace(" ","_")
+                self.picTime = self.picTime.replace(":","-")
+                self.picTotal = self.Processes.ExtractInt(self.MainFrame.pictureNo.Value)
+                self.picSaveClock.Start(50+1000*self.Processes.ExtractInt(self.MainFrame.pictureInt.Value))              
+    
+    def PicFullScreen(self,evt):
+        self.MainFrame.takePicture.Enabled = self.MainFrame.picFullScreen.Value
+        
     def FieldUpdate(self,evt):
         try:
             width=float(self.MainFrame.ccdW.GetValue())
@@ -1189,7 +1242,7 @@ class Controller(object):
             correctionElapsedTime = floatCorrectionElapsedTime//1000
             #action depending on status
             if self.starTracking:
-                self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 10, False)
+                self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 10, False, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
 
             if self.status == "fwhm_calc":
                 self.MainFrame.fwhmCalc.Label = "FWHM = "+str(round(self.FWHM,2))
@@ -1211,35 +1264,36 @@ class Controller(object):
                     print self.arErrList[-1]
 
             elif self.status == "guiding":
+                #print self.angolo*180/3.1415
                 guideCenterXdith, guideCenterYdith = self.Processes.DitheringAdd(self.guideCenterX, self.guideCenterY)
                 deltaAR, deltaDEC = self.Processes.CoordConvert(self.actualX - guideCenterXdith, self.actualY - guideCenterYdith, self.angolo)
-                deltaAR, deltaDEC = self.Processes.KalmanFilter(deltaAR, deltaDEC)
+                deltaAR, deltaDEC = self.Processes.KalmanFilter(deltaAR, deltaDEC, self.corrRateAR, self.R, self.Q)
                 #print "correction before - after kalman;", deltaAR,";", deltaDEC,";", self.deltaAR,";", self.deltaDEC,";"
                 #print "correction before - after kalman;", deltaAR-self.deltaAR,";", deltaDEC-self.deltaDEC,";"
                 if (self.timeFromLastGuide.Time()//1000 > self.guideIntervalSec) and (self.guideIntervalSec > 0):
                     if (self.dithInterval != 0):
-                        if (len(listdir(self.imagesPath)) > self.ditherCount):
+                        if (len(listdir(self.imagesPath)) > (self.ditherCount + self.dithInterval)):
                             self.ditherCount = len(listdir(self.imagesPath))
                             self.Processes.DitheringUpdate() 
                     thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, self.corrRateAR, self.corrRateDEC, 
-                                                                         self.MainFrame.enableDec.Value, self.invAR, self.invDEC, 
+                                                                         self.invAR, self.invDEC, 
                                                                          self.minARcorr, self.minDECcorr, self.controlMode, 
-                                                                         self.guideIntervalSec))
+                                                                         self.guideIntervalSec, self.kp, self.kd))
                     #--- guiding statS
                     if self.meanDECdrift == 0 and self.meanARdrift == 0:
-                        self.meanARdrift = abs(deltaAR)
-                        self.meanDECdrift = abs(deltaDEC)
+                        self.meanARdrift = deltaAR*deltaAR
+                        self.meanDECdrift = deltaDEC*deltaDEC
                     else:
-                        self.meanARdrift = 0.8 * self.meanARdrift + 0.2 * abs(deltaAR)
-                        self.meanDECdrift = 0.8 * self.meanDECdrift + 0.2 * abs(deltaDEC)
+                        self.meanARdrift = 0.9 * self.meanARdrift + 0.1 * deltaAR*deltaAR
+                        self.meanDECdrift = 0.9 * self.meanDECdrift + 0.1 * deltaDEC*deltaDEC
                     self.MainFrame.guideInstr.Value = self.testo[16] + "\n latest AR error = " + str(round(deltaAR,2)) + ( 
-                    "\n latest DEC error = " + str(round(deltaDEC,2)) + "\n Mean AR error = " + str(round(self.meanARdrift,2))) + ( 
-                    "\n Mean DEC error = " + str(round(self.meanDECdrift,2))  + "\n FWHM = " + str(round(self.FWHM,2)))
-                    floatElapsedTime = self.timeFromClick.Time()/1000
-                    self.arErrList.append((round(float(floatElapsedTime), 1), deltaAR))
-                    self.decErrList.append((round(float(floatElapsedTime), 1), deltaDEC))
-                    self.arCorrList.append((round(float(floatElapsedTime), 1), self.Processes.GuideLastARcorr()/1000))
-                    self.decCorrList.append((round(float(floatElapsedTime), 1), self.Processes.GuideLastDECcorr()/1000))
+                    "\n latest DEC error = " + str(round(deltaDEC,2)) + "\n Mean AR error = " + str(round(sqrt(self.meanARdrift),2))) + ( 
+                    "\n Mean DEC error = " + str(round(sqrt(self.meanDECdrift),2))  + "\n FWHM = " + str(round(self.FWHM,2)))
+                    ElapsedTime = float(round(self.timeFromClick.Time()/1000,1))
+                    self.arErrList.append((ElapsedTime, deltaAR))
+                    self.decErrList.append((ElapsedTime, deltaDEC))
+                    self.arCorrList.append((ElapsedTime, -round(float(self.Processes.GuideLastARcorr())/self.corrRateAR,2)))
+                    self.decCorrList.append((ElapsedTime, -round(float(self.Processes.GuideLastDECcorr())/self.corrRateDEC,2)))
                     self.GuideGraphUpdate()
                     self.timeFromLastGuide.Start() #reset stopwatch
 
@@ -1256,6 +1310,26 @@ class Controller(object):
                     self.angolo = angolo
                     self.MainFrame.guideInstr.Value = self.testo[22]
 
+    def PicSaveClock(self,evt):
+        picCount = self.Processes.ExtractInt(self.MainFrame.pictureNo.Value)
+        picIndex = self.picTotal - picCount + 1
+        self.MainFrame.picProgress.Value = int(100*(float(picIndex)/float(self.picTotal)))
+        filename="../savedBMP/Image_" + str(picIndex) + "__" + self.picTime + ".bmp"
+        
+        if self.MainFrame.picFullScreen.Value:
+            winx, winy = self.dcScreen.GetSize()
+            self.Processes.SavePicture(0, 0, winx, winy, filename)
+        else:
+            self.Processes.SavePicture(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, filename)
+        
+        if picCount > 1:
+            self.MainFrame.pictureNo.Value = str(picCount-1)
+        else:
+            self.picSaveClock.Stop()
+            dial=wx.MessageDialog(self.MainFrame, self.testo[32], 'Info', wx.OK | wx.ICON_INFORMATION)
+            dial.ShowModal()
+            self.MainFrame.picProgress.Value = 0
+        
     def DrawClock(self,evt):
         if self.hideVampire:
             self.dcScreen.SetBrush(wx.TRANSPARENT_BRUSH)
