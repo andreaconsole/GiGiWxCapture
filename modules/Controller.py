@@ -84,7 +84,8 @@ class Controller(object):
                             self.SetCalType(evt, temp), id=xrc.XRCID("stareast"))
         self.MainFrame.Bind(wx.EVT_RADIOBUTTON, lambda evt, temp="w":
                             self.SetCalType(evt, temp), id=xrc.XRCID("starwest"))
-        self.MainFrame.Bind(wx.EVT_RADIOBOX, self.SetMountSpeed, id=xrc.XRCID("speed"))
+        self.MainFrame.guideSpeed = xrc.XRCCTRL(self.MainFrame, "speed")
+        self.MainFrame.guideSpeed.Bind(wx.EVT_RADIOBOX, self.SetMountSpeed)
         self.MainFrame.Bind(wx.EVT_BUTTON, self.CameraOrientation, id=xrc.XRCID("cameraorientation"))
         self.MainFrame.alignOrientation = xrc.XRCCTRL(self.MainFrame, "cameraorientation")
         self.MainFrame.alignCorrection = xrc.XRCCTRL(self.MainFrame, "correction")
@@ -112,7 +113,7 @@ class Controller(object):
         self.MainFrame.calibrationSize = xrc.XRCCTRL(self.MainFrame,"calibrationsize")
         self.MainFrame.Bind(wx.EVT_BUTTON, self.SetImagesDir, id=xrc.XRCID("imagesdir"))
         self.MainFrame.maxDithering = xrc.XRCCTRL(self.MainFrame,"maxdithering")
-        self.MainFrame.dithstep = xrc.XRCCTRL(self.MainFrame,"dithstep")
+        self.MainFrame.dithStep = xrc.XRCCTRL(self.MainFrame,"dithstep")
         self.MainFrame.dithInterval = xrc.XRCCTRL(self.MainFrame, "dithinterval")
         self.MainFrame.guideInstr = xrc.XRCCTRL(self.MainFrame,"guideinstr")
         self.MainFrame.guideOnOff = xrc.XRCCTRL(self.MainFrame,"guideonoff")
@@ -161,7 +162,8 @@ class Controller(object):
         self.MainFrame.Bind(wx.EVT_TEXT, self.FieldUpdate, id=xrc.XRCID("ccdw"))
         self.MainFrame.Bind(wx.EVT_TEXT, self.FieldUpdate, id=xrc.XRCID("ccdh"))
         self.MainFrame.Bind(wx.EVT_TEXT, self.FieldUpdate, id=xrc.XRCID("focal"))
-        self.MainFrame.Bind(wx.EVT_RADIOBOX, self.SetMountSpeed, id=xrc.XRCID("speed1"))
+        self.MainFrame.guideSpeed1 = xrc.XRCCTRL(self.MainFrame, "speed1")
+        self.MainFrame.guideSpeed1.Bind(wx.EVT_RADIOBOX, self.SetMountSpeed)
         self.MainFrame.mountStopPic = xrc.XRCCTRL(self.MainFrame, "mountstop")
         self.MainFrame.mountStopPic1 = xrc.XRCCTRL(self.MainFrame, "mountstop1")
         self.MainFrame.mountLeftPic = xrc.XRCCTRL(self.MainFrame, "mountleft")
@@ -327,8 +329,8 @@ class Controller(object):
         self.MainFrame.guideInterval.Value = "2"
         self.MainFrame.maxDithering.Value = "2"
         self.MainFrame.petacMaxDithering.Value = "2"
-        self.MainFrame.DithStep.Value = "1"
-        self.MainFrame.petacDithStep.Value = "1"
+        self.MainFrame.dithStep.Value = "0"
+        self.MainFrame.petacDithStep.Value = "0"
         self.MainFrame.dithInterval.Value = "10"
         self.MainFrame.petacMinCorr.Value = "50"
         self.MainFrame.petacMountLowSpeed.Value = "1.0"
@@ -370,7 +372,7 @@ class Controller(object):
         self.configLines[13] = str(self.Processes.ExtractInt(self.MainFrame.decMinCorr.Value))
         self.configLines[15] = str(self.Processes.ExtractInt(self.MainFrame.guideInterval.Value))
         self.configLines[17] = str(self.Processes.ExtractInt(self.MainFrame.maxDithering.Value))
-        self.configLines[19] = str(self.Processes.ExtractInt(self.MainFrame.DithStep.Value))
+        self.configLines[19] = str(self.Processes.ExtractInt(self.MainFrame.dithStep.Value))
         self.configLines[21] = str(self.Processes.ExtractInt(self.MainFrame.dithInterval.Value))
         self.configLines[23] = str(self.Processes.ExtractInt(self.MainFrame.petacMinCorr.Value))
         self.configLines[25] = str(self.Processes.ExtractFloat(self.MainFrame.petacMountLowSpeed.Value))
@@ -517,6 +519,9 @@ class Controller(object):
             self.starTracking = True
             self.calibrationSize = float(self.MainFrame.calibrationSize.Value)
             self.calcClock.Start(self.CALC_INTERVAL)
+            self.MainFrame.guideSpeed.SetSelection(0)
+            self.MainFrame.guideSpeed1.SetSelection(0)
+            self.Processes.SendMountCommand("0", -1, self.controlMode, 0, 0) #set speed to "min speed" (min)
             self.Processes.GuideCalibrationRoutineStart(self.controlMode)
             self.MainFrame.guideInstr.Value = self.testo[21]
             self.MainFrame.petacInstr.Value = self.testo[21]
@@ -544,6 +549,9 @@ class Controller(object):
             self.MainFrame.dithInterval.Enabled= False
             self.meanARdrift = 0
             self.meanDECdrift = 0
+            self.MainFrame.guideSpeed.SetSelection(0)
+            self.MainFrame.guideSpeed1.SetSelection(0)
+            self.Processes.SendMountCommand("0", -1, self.controlMode, 0, 0) #set speed to "min speed" (min)
             self.Processes.GuideRoutineStart(self.controlMode)
             self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
             self.guideCenterX, self.guideCenterY = self.actualX, self.actualY
@@ -1272,7 +1280,7 @@ class Controller(object):
                 #print "correction before - after kalman;", deltaAR-self.deltaAR,";", deltaDEC-self.deltaDEC,";"
                 if (self.timeFromLastGuide.Time()//1000 > self.guideIntervalSec) and (self.guideIntervalSec > 0):
                     if (self.dithInterval != 0):
-                        if (len(listdir(self.imagesPath)) > (self.ditherCount + self.dithInterval)):
+                        if (len(listdir(self.imagesPath)) >= (self.ditherCount + self.dithInterval)):
                             self.ditherCount = len(listdir(self.imagesPath))
                             self.Processes.DitheringUpdate() 
                     thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, self.corrRateAR, self.corrRateDEC, 
@@ -1288,7 +1296,8 @@ class Controller(object):
                         self.meanDECdrift = 0.9 * self.meanDECdrift + 0.1 * deltaDEC*deltaDEC
                     self.MainFrame.guideInstr.Value = self.testo[16] + "\n latest AR error = " + str(round(deltaAR,2)) + ( 
                     "\n latest DEC error = " + str(round(deltaDEC,2)) + "\n Mean AR error = " + str(round(sqrt(self.meanARdrift),2))) + ( 
-                    "\n Mean DEC error = " + str(round(sqrt(self.meanDECdrift),2))  + "\n FWHM = " + str(round(self.FWHM,2)))
+                    "\n Mean DEC error = " + str(round(sqrt(self.meanDECdrift),2))  + "\n FWHM = " + str(round(self.FWHM,2)
+                    ) + "\n Dith = (" + str(round(self.Processes.dithIncrX,1)) + ", " + str(round(self.Processes.dithIncrY,1)) + ")")
                     ElapsedTime = float(round(self.timeFromClick.Time()/1000,1))
                     self.arErrList.append((ElapsedTime, deltaAR))
                     self.decErrList.append((ElapsedTime, deltaDEC))

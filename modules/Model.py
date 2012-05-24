@@ -162,7 +162,7 @@ class Processes(object):
         #----------constS
         # Warning: never forget that testMode is incompatible with dithering - always remember
         # to set dith interval to 0
-        self.testMode = True
+        self.testMode = False
         
 
     def InitSerial(self,which,baudrateVal = 9600):
@@ -620,7 +620,7 @@ class Processes(object):
         self.maxDith = maxDith
 
     def DitheringUpdate(self):
-        if self.maxDitherX>0 and self.dithFactX<>0:
+        if self.maxDith>0 and self.dithFactX<>0:
             self.dithIncrX += self.dithFactX
             self.dithIncrY += self.dithFactY
         if abs(self.dithIncrX) >= self.maxDith:
@@ -638,6 +638,7 @@ class Processes(object):
     def SendMountCommand(self, direction, msTimeCorr, controlMode, invAR, invDEC, corrRateAR = 100, corrRateDEC = 100):
         # if msTimeCorr<0: send simply the command to the mount, else: move, sleeps msTimeCorr milliseconds, and stops
         #print "controlmode-invaAR-invDEC-direction-msTimeCorr",controlMode, invAR, invDEC, direction, msTimeCorr
+        print "mount command: ", direction
         if self.testMode: # test control
             if msTimeCorr > 0:
                 Sleep(msTimeCorr/1000)
@@ -690,8 +691,9 @@ class Processes(object):
                 elif direction == "1": Stringa = "#:RC#"
                 elif direction == "2": Stringa = "#:RM#"
                 else: return
-                if msTimeCorr != 0: self.ser.write(Stringa)
-                if msTimeCorr < 0 and direction == "q":
+                if msTimeCorr != 0: 
+                    self.ser.write(Stringa)
+                if msTimeCorr < 0: #and direction == "q":
                     Sleep(1) #interval to not saturate serial port
                 if msTimeCorr > 0:
                     Sleep(msTimeCorr/1000)
@@ -835,7 +837,6 @@ class Processes(object):
             pass
         
     def GuideRoutineStart(self, controlMode):
-        self.SendMountCommand("0", -1, controlMode, 0, 0) #set speed to min
         self.ARcorr, self.DECcorr = 0, 0
         
     def GuideLastARcorr(self):
@@ -869,11 +870,13 @@ class Processes(object):
         self.timeForCalSizeAlongX, self.timeForCalSizeAlongY = 0, 0
         self.corrRateAR, self.corrRateDEC = -1, -1
         self.gapPass = False
-        self.SendMountCommand("0", -1, controlMode,0,0) #set speed to min
 
     def GuideCalibrationRoutine(self, actualX, actualY, controlMode, invAR, invDEC, calibrationSize):
-        GAP_SIZE = 20 # length of no-calculation track (in order to avoid to compute backlash)
+        GAP_SIZE = max(round(calibrationSize*0.1),2) # length of no-calculation track (in order to avoid to compute backlash); min 2px
         ready = False
+        newInvAR = invAR
+        newInvDEC = invDEC
+        angolo = 0
         if self.status == 0:
             self.startX, self.startY = actualX, actualY
             self.SendMountCommand("n", -1, controlMode, invAR, invDEC)

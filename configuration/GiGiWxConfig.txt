@@ -15,11 +15,11 @@ audio
 ----Guide interval in sec [2]----
 2
 ----Max dithering AR in pixel [0]----
-2
+4
 ----Max dithering DEC in pixel [0]----
-3
+1
 ----PET-AC and Guide dithering interval in sec [10]----
-10
+1
 ----PET-AC minimum AR correction (in ms) [300]----
 300
 ----PET-AC slowest mount speed set (0.33x, 1x...) [1]----
