@@ -1341,7 +1341,6 @@ class Controller(object):
         
     def DrawClock(self,evt):
         if self.hideVampire:
-            self.dcScreen = wx.ScreenDC()
             self.dcScreen.SetBrush(wx.TRANSPARENT_BRUSH)
             #draw crosshair
             if self.MainFrame.crosshair.GetValue():

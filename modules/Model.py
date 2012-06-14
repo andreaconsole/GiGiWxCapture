@@ -177,11 +177,11 @@ class Processes(object):
         print self.ser.portstr
 
     def InitAudio(self):
-        self.soundN = wx.Sound(os.path.abspath("../audio/decIncr.wav"))
-        self.soundS = wx.Sound(os.path.abspath("../audio/decDecr.wav"))
-        self.soundE = wx.Sound(os.path.abspath("../audio/arIncr.wav"))
-        self.soundW = wx.Sound(os.path.abspath("../audio/arDecr.wav"))
-        self.soundQ = wx.Sound(os.path.abspath("../audio/arDecStop.wav"))
+        self.soundN = wx.Sound(os.path.abspath("../audio/c2.wav"))
+        self.soundS = wx.Sound(os.path.abspath("../audio/c8.wav"))
+        self.soundW = wx.Sound(os.path.abspath("../audio/c1.wav"))
+        self.soundE = wx.Sound(os.path.abspath("../audio/c4.wav"))
+        self.soundQ = wx.Sound(os.path.abspath("../audio/c0.wav"))
         self.soundQ.Play(wx.SOUND_ASYNC)
 
     def CloseSerial(self):
