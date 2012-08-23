@@ -317,6 +317,7 @@ class Processes(object):
     # centers the star and finds fwhm; track radius = 9px
     # 0<starFilter<=1. It's a filter against noise. The smaller the stronger.
         MIN_DISTANCE = 35 #minimum distance from the border of window
+        MIN_PEAK_VALUE = 20 #minimum peak value for a star to be seen (don't guide on fainter)
         #create a copy of screen image in memory
         self.memory.SelectObject(self.bitmap)
         self.memory.Blit(0,0,self.screenSizeX,self.screenSizeY,self.dcScreen,0,0)
@@ -355,21 +356,21 @@ class Processes(object):
             pdfY = map(pixelRedVal,xr,vv)
             pdfYl = map(pixelRedVal,xrl,vv)
             pdfYr = map(pixelRedVal,xrr,vv)
-            
-            self.parSum = 0
-            cdfX=map(incrementalSum,pdfX,pdfXu,pdfXu)
-            self.parSum = 0
-            cdfY=map(incrementalSum,pdfY,pdfYl,pdfYr)
-            actualX = actualXr
-            actualY = actualYr
-            for j in xrange(0,18):
-                if (cdfX[j] <= 0.5 * cdfX[18]) and (cdfX[j + 1] > 0.5 * cdfX[18]):
-                    #calculation by interpolation of j / cdf(j)=0.5*cdf(18)
-                    actualX = actualXr + j - 9 + (0.5 * cdfX[18] - cdfX[j]) / (cdfX[j + 1] - cdfX[j])
-                if (cdfY[j] <= 0.5 * cdfY[18]) and (cdfY[j + 1] > 0.5 * cdfY[18]):
-                    #calculation by interpolation of j / cdf(j)=0.5*cdf(18)
-                    actualY = actualYr + j - 9 + (0.5 * cdfY[18] - cdfY[j]) / (cdfY[j + 1] - cdfY[j]) 
-            
+            if (max(pdfX) > MIN_PEAK_VALUE) and (max(pdfY) > MIN_PEAK_VALUE):
+                self.parSum = 0
+                cdfX=map(incrementalSum,pdfX,pdfXd,pdfXu)
+                self.parSum = 0
+                cdfY=map(incrementalSum,pdfY,pdfYl,pdfYr)
+                actualX = actualXr
+                actualY = actualYr
+                for j in xrange(0,18):
+                    if (cdfX[j] <= 0.5 * cdfX[18]) and (cdfX[j + 1] > 0.5 * cdfX[18]):
+                        #calculation by interpolation of j / cdf(j)=0.5*cdf(18)
+                        actualX = actualXr + j - 9 + (0.5 * cdfX[18] - cdfX[j]) / (cdfX[j + 1] - cdfX[j])
+                    if (cdfY[j] <= 0.5 * cdfY[18]) and (cdfY[j + 1] > 0.5 * cdfY[18]):
+                        #calculation by interpolation of j / cdf(j)=0.5*cdf(18)
+                        actualY = actualYr + j - 9 + (0.5 * cdfY[18] - cdfY[j]) / (cdfY[j + 1] - cdfY[j]) 
+                
         #---FWHM
         ped = 0.25 * (pdfX[0] + pdfX[18] + pdfY[0] + pdfY[18]) #calculates background value
         pedarray = [ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped,ped] 
