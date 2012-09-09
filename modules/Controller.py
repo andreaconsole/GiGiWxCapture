@@ -234,7 +234,7 @@ class Controller(object):
         self.MIN_CALIBRATION_TIME = 300 #secs: min time for petac calibration
         self.MIN_SHIFT_TO_GUIDE = 2 #px: minimum difference between star position that reveals frame change
         self.DEFAULT_STAR_FILTER = 0.60
-        self.HI_SENS_STAR_FILTER = 0.33 #optimizated for a 2 sec guide interval and a 500ms between startracks
+        self.HI_SENS_STAR_FILTER = 0.33 #optimized for a 2 sec guide interval and a 500ms between startracks
         #----------InitVar
         self.alphaAmount=254
         self.starPosition="s"
@@ -258,7 +258,7 @@ class Controller(object):
         self.MainFrame.ZoomFrame.Bind(wx.EVT_PAINT, self.ZoomRefresh)
 
         self.xs, self.ys=-50, -50
-        self.angolo = 0
+        self.genericCounter = 0
         self.crosshairXs, self.crosshairYs=-50, -50
         self.actualX = 320
         self.actualY = 240
@@ -279,14 +279,12 @@ class Controller(object):
         self.MountPortSelect(None)
         self.a = self.b = 1
         self.correzione = 0
-        self.angolo = 0
-        self.invAR, self.invDEC = self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value
         self.ditherCount = 0
         self.lastMoveTime = 0
         self.movementTime = 0
         self.FilterChanged(True)
         self.Processes.KalmanFilterReset()
-        self.Processes.PIDcontrolReset()
+        self.Processes.GuideCalcReset()
         self.SetStatus("idle")
         #sys.stdout = self.filelog #redirect text output to log file
         #sys.stderr = self.filelog #redirect error output to log file
@@ -398,7 +396,7 @@ class Controller(object):
         self.MainFrame.ccdW.Value = "0"
         self.MainFrame.ccdH.Value = "0"
         self.MainFrame.focal.Value = "0"
-        self.angolo = 0
+        self.angolo = 0.0
         self.imagesPath = ""
         try:
             self.MainFrame.arGuideValue.Value = str(self.Processes.ExtractFloat(tempLines[0]))
@@ -521,7 +519,7 @@ class Controller(object):
             self.calcClock.Start(self.CALC_INTERVAL)
             self.MainFrame.guideSpeed.SetSelection(0)
             self.MainFrame.guideSpeed1.SetSelection(0)
-            self.Processes.SendMountCommand("0", -1, self.controlMode, 0, 0) #set speed to "min speed" (min)
+            self.Processes.SendMountCommand("0", -1, self.controlMode) #set speed to "min speed" (min)
             self.Processes.GuideCalibrationRoutineStart(self.controlMode)
             self.MainFrame.guideInstr.Value = self.testo[21]
             self.MainFrame.petacInstr.Value = self.testo[21]
@@ -530,12 +528,13 @@ class Controller(object):
             self.MainFrame.guideInstr.Value = self.testo[15]
 
         elif self.status == "guiding":
+            print "GUIDE VALUES: ", self.MainFrame.arGuideValue.Value, self.MainFrame.decGuideValue.Value, "; invar-dec:", self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, "; angle:", self.angolo*57.3
             self.arErrList = [(0.0,0.0)]
             self.decErrList = [(0.0,0.0)]
             self.arCorrList = [(0.0,0.0)]
             self.decCorrList = [(0.0,0.0)]
             self.Processes.KalmanFilterReset()
-            self.Processes.PIDcontrolReset()
+            self.Processes.GuideCalcReset()
             self.MainFrame.guideCalibrationOnOff.Enabled = False
             self.MainFrame.arGuideValue.Enabled = False
             self.MainFrame.decGuideValue.Enabled = False
@@ -551,16 +550,15 @@ class Controller(object):
             self.meanDECdrift = 0
             self.MainFrame.guideSpeed.SetSelection(0)
             self.MainFrame.guideSpeed1.SetSelection(0)
-            self.Processes.SendMountCommand("0", -1, self.controlMode, 0, 0) #set speed to "min speed" (min)
+            self.Processes.SendMountCommand("0", -1, self.controlMode) #set speed to "min speed" (min)
             self.Processes.GuideRoutineStart(self.controlMode)
             self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
             self.guideCenterX, self.guideCenterY = self.actualX, self.actualY
-            self.corrRateAR, self.corrRateDEC = float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value)
             self.minARcorr, self.minDECcorr = float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value)
             self.dithInterval = float(self.MainFrame.dithInterval.Value)
             self.Processes.DitheringInit(float(self.MainFrame.maxDithering.Value), float(self.MainFrame.dithStep.Value))
             self.starTracking = True
-            self.ditherCount = len(listdir(self.imagesPath))
+            self.ditherCount = self.Processes.CountFiles(self.imagesPath)
             self.guideIntervalSec = float(self.MainFrame.guideInterval.Value)
             if self.guideIntervalSec > 0:
                 self.OnGraphFrame(None)
@@ -608,7 +606,6 @@ class Controller(object):
             self.MainFrame.petacMaxDithering.Enabled = False
             self.MainFrame.petacDithStep.Enabled = False
             self.guideCenterX, self.guideCenterY =self.actualX, self.actualY
-            self.corrRateAR, self.corrRateDEC = float(self.MainFrame.petacArGuideValue.Value), float(self.MainFrame.petacDecGuideValue.Value)
             self.minARcorr, self.minDECcorr = float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value)
             self.Processes.DitheringInit(float(self.MainFrame.petacMaxDithering.Value), float(self.MainFrame.petacDithStep.Value))
             self.guideIntervalSec = float(self.MainFrame.guideInterval.Value)
@@ -620,6 +617,7 @@ class Controller(object):
         #----
         elif self.status == "idle":
             #guide idle
+            self.Processes.SendMountCommand("q", -1, self.controlMode)
             self.MainFrame.guideCalibrationOnOff.Value = False
             self.MainFrame.guideOnOff.Value = False
             self.MainFrame.petacCalOnOff.Value = False
@@ -750,7 +748,7 @@ class Controller(object):
                 self.MainFrame.mountLeftPic1.Show(False)
                 self.MainFrame.mountRightPic1.Show(False)
                 self.MainFrame.mountStopPic1.Show(False)
-                self.Processes.SendMountCommand("n", -1, self.controlMode, self.invAR, self.invDEC)
+                self.Processes.SendMountCommand("n", -1, self.controlMode, self.MainFrame.invertDec.Value)
             elif keycode == wx.WXK_DOWN:
                 self.MainFrame.mountUpPic.Show(False)
                 self.MainFrame.mountDownPic.Show(True)
@@ -762,7 +760,7 @@ class Controller(object):
                 self.MainFrame.mountLeftPic1.Show(False)
                 self.MainFrame.mountRightPic1.Show(False)
                 self.MainFrame.mountStopPic1.Show(False)
-                self.Processes.SendMountCommand("s", -1, self.controlMode, self.invAR, self.invDEC)
+                self.Processes.SendMountCommand("s", -1, self.controlMode, self.MainFrame.invertDec.Value)
             elif keycode == wx.WXK_LEFT:
                 self.MainFrame.mountUpPic.Show(False)
                 self.MainFrame.mountDownPic.Show(False)
@@ -774,7 +772,7 @@ class Controller(object):
                 self.MainFrame.mountLeftPic1.Show(True)
                 self.MainFrame.mountRightPic1.Show(False)
                 self.MainFrame.mountStopPic1.Show(False)
-                self.Processes.SendMountCommand("w", -1, self.controlMode, self.invAR, self.invDEC)
+                self.Processes.SendMountCommand("w", -1, self.controlMode, self.MainFrame.invertAr.Value)
             elif keycode == wx.WXK_RIGHT:
                 self.MainFrame.mountUpPic.Show(False)
                 self.MainFrame.mountDownPic.Show(False)
@@ -786,7 +784,7 @@ class Controller(object):
                 self.MainFrame.mountLeftPic1.Show(False)
                 self.MainFrame.mountRightPic1.Show(True)
                 self.MainFrame.mountStopPic1.Show(False)
-                self.Processes.SendMountCommand("e", -1, self.controlMode, self.invAR, self.invDEC)
+                self.Processes.SendMountCommand("e", -1, self.controlMode, self.MainFrame.invertAr.Value)
             else:
                 self.lastMountCommand = "quit"
 
@@ -803,7 +801,7 @@ class Controller(object):
             self.MainFrame.mountRightPic1.Show(False)
             self.MainFrame.mountStopPic1.Show(True)
             self.lastMountCommand = "quit"
-            self.Processes.SendMountCommand("q", -1, self.controlMode, 0, 0)
+            self.Processes.SendMountCommand("q", -1, self.controlMode)
 
     def LeftClickOnVampire(self,evt):
         xs, ys = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, evt.X, evt.Y)
@@ -977,7 +975,6 @@ class Controller(object):
         self.MainFrame.decGuideValue.Value = self.MainFrame.petacDecGuideValue.Value
         self.MainFrame.maxDithering.Value = self.MainFrame.petacMaxDithering.Value
         self.MainFrame.dithStep.Value = self.MainFrame.petacDithStep.Value
-        self.invAR, self.invDEC = self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value
 
     def PetacChangeCommonControl(self,evt):
         self.MainFrame.petacInvertAr.Value = self.MainFrame.invertAr.Value
@@ -986,7 +983,6 @@ class Controller(object):
         self.MainFrame.petacDecGuideValue.Value = self.MainFrame.decGuideValue.Value
         self.MainFrame.petacMaxDithering.Value = self.MainFrame.maxDithering.Value
         self.MainFrame.petacDithStep.Value = self.MainFrame.dithStep.Value
-        self.invAR, self.invDEC = self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value
 
     def SetCalType(self,evt,which):
         if which=="s":
@@ -1029,7 +1025,7 @@ class Controller(object):
                 self.MainFrame.guideOnOff.Enabled = True
                 self.MainFrame.petacOnOff.Enabled = True
                 self.controlMode = "serial"
-                self.Processes.SendMountCommand("1", -1, self.controlMode, 0, 0) #set speed to "center speed" (mid)
+                self.Processes.SendMountCommand("1", -1, self.controlMode) #set speed to "center speed" (mid)
                 self.lastMountCommand = "quit"
             except:
                 try:
@@ -1040,7 +1036,7 @@ class Controller(object):
                     self.MainFrame.guideOnOff.Enabled = True
                     self.MainFrame.petacOnOff.Enabled = True
                     self.controlMode = "serial"
-                    self.Processes.SendMountCommand("1", -1, self.controlMode, 0, 0) #set speed to "center speed" (mid)
+                    self.Processes.SendMountCommand("1", -1, self.controlMode) #set speed to "center speed" (mid)
                     self.lastMountCommand = "quit"
                 except:
                     dial=wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[17], 'Info', wx.ICON_ERROR | wx.OK)
@@ -1048,7 +1044,7 @@ class Controller(object):
                     self.MainFrame.mountportcombo.Value = "none"              
             
     def SetMountSpeed(self,evt):
-        self.Processes.SendMountCommand(str(evt.GetInt()), -1, self.controlMode, 0, 0)
+        self.Processes.SendMountCommand(str(evt.GetInt()), -1, self.controlMode)
         
     def FilterChanged(self,evt):
         if self.MainFrame.hiSens.Value:
@@ -1065,6 +1061,7 @@ class Controller(object):
         if self.hideVampire:
             if self.status == "guide_calibrating" or self.status == "guide_calibration_waiting":
                 self.SetStatus("idle")
+                self.Processes.SendMountCommand("q", -1, self.controlMode)
                 self.MainFrame.guideInstr.Value = self.testo[23]
             else:
                 self.SetStatus("guide_calibration_waiting")
@@ -1143,8 +1140,8 @@ class Controller(object):
                 self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 10, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
                 if abs(self.actualX-latestX) >= self.MIN_SHIFT_TO_GUIDE or abs(self.actualY-latestY) >= self.MIN_SHIFT_TO_GUIDE:
                     print "Dithering..."
-                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, self.corrRateAR, self.corrRateDEC,
-                                                                        self.invAR, self.invDEC, self.minARcorr, self.minDECcorr, self.controlMode, self.guideIntervalSec))
+                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value),
+                                                                        self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, self.minARcorr, self.minDECcorr, self.controlMode, self.guideIntervalSec))
                 #apply pet-ac correction if needed
                 if self.lastMoveTime > 0 and self.petacVal > 0:
                     print "movement interval: ", self.movementTime-self.lastMoveTime
@@ -1163,7 +1160,7 @@ class Controller(object):
                 self.picSaveClock.Start(50+1000*self.Processes.ExtractInt(self.MainFrame.pictureInt.Value))              
     
     def PicFullScreen(self,evt):
-        self.MainFrame.takePicture.Enabled = self.MainFrame.picFullScreen.Value
+        self.MainFrame.takePicture.Enabled = self.MainFrame.picFullScreen.Value or self.hideVampire
         
     def FieldUpdate(self,evt):
         try:
@@ -1275,18 +1272,20 @@ class Controller(object):
                 #print self.angolo*180/3.1415
                 guideCenterXdith, guideCenterYdith = self.Processes.DitheringAdd(self.guideCenterX, self.guideCenterY)
                 deltaAR, deltaDEC = self.Processes.CoordConvert(self.actualX - guideCenterXdith, self.actualY - guideCenterYdith, self.angolo)
-                deltaAR, deltaDEC = self.Processes.KalmanFilter(deltaAR, deltaDEC, self.corrRateAR, self.R, self.Q)
-                #print "correction before - after kalman;", deltaAR,";", deltaDEC,";", self.deltaAR,";", self.deltaDEC,";"
-                #print "correction before - after kalman;", deltaAR-self.deltaAR,";", deltaDEC-self.deltaDEC,";"
+                deltaAR, deltaDEC = self.Processes.KalmanFilter(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), self.R, self.Q)
+                
                 if (self.timeFromLastGuide.Time()//1000 > self.guideIntervalSec) and (self.guideIntervalSec > 0):
                     if (self.dithInterval != 0):
-                        if (len(listdir(self.imagesPath)) >= (self.ditherCount + self.dithInterval)):
-                            self.ditherCount = len(listdir(self.imagesPath))
+                        if (self.Processes.CountFiles(self.imagesPath) >= (self.ditherCount + self.dithInterval)):
+                            self.ditherCount = self.Processes.CountFiles(self.imagesPath)
                             self.Processes.DitheringUpdate() 
-                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, self.corrRateAR, self.corrRateDEC, 
-                                                                         self.invAR, self.invDEC, 
+                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value), 
+                                                                         self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, 
                                                                          self.minARcorr, self.minDECcorr, self.controlMode, 
                                                                          self.guideIntervalSec, self.kp, self.kd))
+
+                    
+                          
                     #--- guiding statS
                     if self.meanDECdrift == 0 and self.meanARdrift == 0:
                         self.meanARdrift = deltaAR*deltaAR
@@ -1297,12 +1296,12 @@ class Controller(object):
                     self.MainFrame.guideInstr.Value = self.testo[16] + "\n latest AR error = " + str(round(deltaAR,2)) + ( 
                     "\n latest DEC error = " + str(round(deltaDEC,2)) + "\n Mean AR error = " + str(round(sqrt(self.meanARdrift),2))) + ( 
                     "\n Mean DEC error = " + str(round(sqrt(self.meanDECdrift),2))  + "\n FWHM = " + str(round(self.FWHM,2)
-                    ) + "\n Dith = (" + str(round(self.Processes.dithIncrX,1)) + ", " + str(round(self.Processes.dithIncrY,1)) + ")")
+                    ) + "\n Dith = (" + str(round(self.Processes.dithIncrX,1)) + ", " + str(round(self.Processes.dithIncrY,1)) + ")"+ "\n Angle = " + str(round(57.3 * self.angolo)))
                     ElapsedTime = float(round(self.timeFromClick.Time()/1000,1))
                     self.arErrList.append((ElapsedTime, deltaAR))
                     self.decErrList.append((ElapsedTime, deltaDEC))
-                    self.arCorrList.append((ElapsedTime, -round(float(self.Processes.GuideLastARcorr())/self.corrRateAR,2)))
-                    self.decCorrList.append((ElapsedTime, -round(float(self.Processes.GuideLastDECcorr())/self.corrRateDEC,2)))
+                    self.arCorrList.append((ElapsedTime, round(float(self.Processes.GuideLastARcorr())/(float(self.MainFrame.arGuideValue.Value)+1),2)))
+                    self.decCorrList.append((ElapsedTime, round(float(self.Processes.GuideLastDECcorr())/(float(self.MainFrame.decGuideValue.Value)+1),2)))
                     self.GuideGraphUpdate()
                     self.timeFromLastGuide.Start() #reset stopwatch
 
@@ -1310,14 +1309,19 @@ class Controller(object):
                 pass
 
             elif self.status == "guide_calibrating":
-                corrRateAR, corrRateDEC, invAR, invDEC, angolo, ready = self.Processes.GuideCalibrationRoutine(self.actualX, self.actualY, self.controlMode, self.invAR, self.invDEC, self.calibrationSize)
-                if ready:
+                corrRateAR, corrRateDEC, invAR, invDEC, angolo, countdown = self.Processes.GuideCalibrationRoutine(self.actualX, self.actualY, self.controlMode, self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, self.calibrationSize)
+                self.MainFrame.guideInstr.Value += ". "
+                self.genericCounter += 1
+                if self.genericCounter >=10:
+                    self.MainFrame.guideInstr.Value = self.testo[21]
+                    self.genericCounter = 0
+                if countdown == 0:
                     self.MainFrame.arGuideValue.Value, self.MainFrame.decGuideValue.Value = str(int(corrRateAR)), str(int(corrRateDEC))
-                    self.SetStatus("idle")
-                    self.invAR, self.invDEC = invAR, invDEC
-                    self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value = self.invAR, self.invDEC
                     self.angolo = angolo
+                    self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value = invAR, invDEC
+                    self.SetStatus("idle")
                     self.MainFrame.guideInstr.Value = self.testo[22]
+                    print "GUIDE VALUES: ", self.MainFrame.arGuideValue.Value, self.MainFrame.decGuideValue.Value, "; invar-dec:", self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, "; angle:", self.angolo*57.3
 
     def PicSaveClock(self,evt):
         picCount = self.Processes.ExtractInt(self.MainFrame.pictureNo.Value)

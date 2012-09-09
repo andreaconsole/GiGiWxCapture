@@ -57,7 +57,7 @@
           <object class="wxStaticText" name="nomeprog">
             <pos>30,280</pos>
             <size>150,15</size>
-            <label>GiGiWxCapture 1.0</label>
+            <label>GiGiWxCapture 2.1</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxStaticText" name="nickname">
@@ -149,7 +149,7 @@
             <value>testo testo testo-testo-testone-testo-testo testo testo testo testo testo</value>
             <fg>#BFBFBF</fg>
             <bg>#631919</bg>
-            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT|wxTE_WORDWRAP</style>
+            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT</style>
           </object>
           <bg>#A52A2A</bg>
           <object class="wxRadioBox" name="speed">
@@ -218,7 +218,7 @@
           </object>
           <object class="wxTextCtrl" name="calibrationsize">
             <pos>5,30</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>150</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -231,14 +231,14 @@
           </object>
           <object class="wxTextCtrl" name="arguidevalue">
             <pos>5,58</pos>
-            <size>70,25</size>
+            <size>70,20</size>
             <value>1000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxTextCtrl" name="decguidevalue">
             <pos>82,58</pos>
-            <size>70,25</size>
+            <size>70,20</size>
             <value>1000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -271,7 +271,7 @@
           </object>
           <object class="wxTextCtrl" name="armincorr">
             <pos>5,130</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>200</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -284,7 +284,7 @@
           </object>
           <object class="wxTextCtrl" name="decmincorr">
             <pos>5,157</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>200</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -297,7 +297,7 @@
           </object>
           <object class="wxTextCtrl" name="guideinterval">
             <pos>5,184</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>2000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -320,7 +320,7 @@
           </object>
           <object class="wxTextCtrl" name="maxdithering">
             <pos>5,244</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -330,11 +330,10 @@
             <size>110,15</size>
             <label>max dith. px</label>
             <fg>#ADD8E6</fg>
-            <bg>#A56363</bg>
           </object>
           <object class="wxTextCtrl" name="dithstep">
             <pos>5,271</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -347,7 +346,7 @@
           </object>
           <object class="wxTextCtrl" name="dithinterval">
             <pos>5,298</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -369,7 +368,7 @@
             <value>testo testo testo-testo-testone-testo-testo testo testo testo testo testo</value>
             <fg>#BFBFBF</fg>
             <bg>#631919</bg>
-            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT|wxTE_WORDWRAP</style>
+            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT</style>
           </object>
           <bg>#A52A2A</bg>
         </object>
@@ -384,14 +383,14 @@
           </object>
           <object class="wxTextCtrl" name="petacarguidevalue">
             <pos>5,37</pos>
-            <size>70,25</size>
+            <size>70,20</size>
             <value>1000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxTextCtrl" name="petacdecguidevalue">
             <pos>82,37</pos>
-            <size>70,25</size>
+            <size>70,20</size>
             <value>1000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -422,7 +421,7 @@
           </object>
           <object class="wxTextCtrl" name="petacvalue">
             <pos>5,130</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>1000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -435,7 +434,7 @@
           </object>
           <object class="wxTextCtrl" name="petacmincorr">
             <pos>5,157</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>200</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -448,7 +447,7 @@
           </object>
           <object class="wxTextCtrl" name="petacmountlowspeed">
             <pos>5,184</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>1</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -466,7 +465,7 @@
           </object>
           <object class="wxTextCtrl" name="petacmaxdithering">
             <pos>5,222</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -479,7 +478,7 @@
           </object>
           <object class="wxTextCtrl" name="petacdithstep">
             <pos>5,249</pos>
-            <size>50,25</size>
+            <size>50,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -501,7 +500,7 @@
             <value>testo testo testo-testo-testone-testo-testo testo testo testo testo testo</value>
             <fg>#BFBFBF</fg>
             <bg>#631919</bg>
-            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT|wxTE_WORDWRAP</style>
+            <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT</style>
           </object>
           <bg>#A52A2A</bg>
         </object>
@@ -544,7 +543,7 @@
           </object>
           <object class="wxTextCtrl" name="pictureno">
             <pos>10,125</pos>
-            <size>40,25</size>
+            <size>40,20</size>
             <value>1</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -557,7 +556,7 @@
           </object>
           <object class="wxTextCtrl" name="pictureint">
             <pos>10,155</pos>
-            <size>40,25</size>
+            <size>40,20</size>
             <value>1</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -612,14 +611,14 @@
           </object>
           <object class="wxTextCtrl" name="ccdw">
             <pos>10,330</pos>
-            <size>40,25</size>
+            <size>40,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxTextCtrl" name="ccdh">
             <pos>62,330</pos>
-            <size>40,25</size>
+            <size>40,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -638,7 +637,7 @@
           </object>
           <object class="wxTextCtrl" name="focal">
             <pos>10,360</pos>
-            <size>40,25</size>
+            <size>40,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
@@ -651,14 +650,14 @@
           </object>
           <object class="wxTextCtrl" name="field">
             <pos>10,390</pos>
-            <size>-1,25</size>
+            <size>-1,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER|wxTE_READONLY</style>
           </object>
           <object class="wxStaticText" name="fieldtext">
             <pos>115,395</pos>
-            <size>30,25</size>
+            <size>30,20</size>
             <label>field</label>
             <fg>#ADD8E6</fg>
           </object>
@@ -735,7 +734,7 @@
           <object class="wxStaticText" name="nomeprog">
             <pos>30,280</pos>
             <size>150,15</size>
-            <label>GiGiWxCapture 1.0</label>
+            <label>GiGiWxCapture 2.1</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxStaticText" name="nickname">
@@ -817,19 +816,19 @@
     </object>
     <object class="wxTextCtrl" name="name">
       <pos>5,250</pos>
-      <size>290,25</size>
+      <size>290,20</size>
       <value>Your name/email [optional] </value>
       <bg>#A56363</bg>
     </object>
     <object class="wxTextCtrl" name="city">
       <pos>5,280</pos>
-      <size>290,25</size>
+      <size>290,20</size>
       <value>Your city/country [optional]</value>
       <bg>#A56363</bg>
     </object>
     <object class="wxTextCtrl" name="comment">
       <pos>5,310</pos>
-      <size>290,25</size>
+      <size>290,20</size>
       <value>A small comment... [optional]</value>
       <bg>#A56363</bg>
     </object>
@@ -855,7 +854,7 @@
       <value>testo testo testo-testo-testone-testo-testo testo testo testo testo testo</value>
       <fg>#BFBFBF</fg>
       <bg>#631919</bg>
-      <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT|wxTE_WORDWRAP</style>
+      <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT</style>
     </object>
     <object class="wxButton" name="helpreq">
       <pos>475,350</pos>

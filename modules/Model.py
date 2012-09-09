@@ -50,6 +50,12 @@ atan = math.atan
 pi = math.pi
 atan2 = math.atan2
 hypot = math.hypot
+def sign(x): 
+    if x >= 0: 
+        y = 1
+    else:
+        y= -1
+    return y
 
 class Configuration(object):
     def __init__(self, configFileName, tempFileName, languageFileName):
@@ -160,9 +166,8 @@ class Processes(object):
         self.memory=wx.MemoryDC()
         self.FWHM = 0
         #----------constS
-        # Warning: never forget that testMode is incompatible with dithering - always remember
-        # to set dith interval to 0
-        self.testMode = False
+        # Warning: testmode works only in audio mode; don't forget to to put testmode on False when finished testing...
+        self.testMode = True
         
 
     def InitSerial(self,which,baudrateVal = 9600):
@@ -177,10 +182,10 @@ class Processes(object):
         print self.ser.portstr
 
     def InitAudio(self):
-        self.soundN = wx.Sound(os.path.abspath("../audio/c2.wav"))
-        self.soundS = wx.Sound(os.path.abspath("../audio/c8.wav"))
-        self.soundW = wx.Sound(os.path.abspath("../audio/c1.wav"))
-        self.soundE = wx.Sound(os.path.abspath("../audio/c4.wav"))
+        self.soundN = wx.Sound(os.path.abspath("../audio/c1.wav"))
+        self.soundS = wx.Sound(os.path.abspath("../audio/c4.wav"))
+        self.soundW = wx.Sound(os.path.abspath("../audio/c8.wav"))
+        self.soundE = wx.Sound(os.path.abspath("../audio/c2.wav"))
         self.soundQ = wx.Sound(os.path.abspath("../audio/c0.wav"))
         self.soundQ.Play(wx.SOUND_ASYNC)
 
@@ -412,11 +417,9 @@ class Processes(object):
         return angolo
     
     def CoordConvert(self,x,y,angolo): 
-        #converts x and y coord between two ref. sys with same origin and rotated of "-angolo"
-        ipotenuse = hypot(x,y)
-        deltaAngolo = atan2(y, x) + angolo
-        x1 = ipotenuse * cos(deltaAngolo)
-        y1 = ipotenuse * sin(deltaAngolo) 
+        #converts x and y coord between two ref. sys with same origin and rotated of "-angolo" 
+        x1 = round(x * cos(angolo) - y * sin(angolo))
+        y1 = round(x * sin(angolo) + y * cos(angolo))
         return x1, y1
 
     def SetFattCorr(self,value):
@@ -636,54 +639,28 @@ class Processes(object):
         #print "center moved of: ", self.dithIncrX, self.dithIncrY
         return guideCenterX, guideCenterY
 
-    def SendMountCommand(self, direction, msTimeCorr, controlMode, invAR, invDEC, corrRateAR = 100, corrRateDEC = 100):
+    def SendMountCommand(self, direction, msTimeCorr, controlMode, inv = False):
         # if msTimeCorr<0: send simply the command to the mount, else: move, sleeps msTimeCorr milliseconds, and stops
-        #print "controlmode-invaAR-invDEC-direction-msTimeCorr",controlMode, invAR, invDEC, direction, msTimeCorr
         print "mount command: ", direction
-        if self.testMode: # test control
-            if msTimeCorr > 0:
-                Sleep(msTimeCorr/1000)
-                if direction == "e":
-                    if invAR:
-                        self.dithIncrX += msTimeCorr / corrRateAR
-                    else:
-                        self.dithIncrX -= msTimeCorr / corrRateAR
-                elif direction == "w":
-                    if invAR:
-                        self.dithIncrX -= msTimeCorr / corrRateAR
-                    else:
-                        self.dithIncrX += msTimeCorr / corrRateAR
-                elif direction == "n":
-                    if invDEC:
-                        self.dithIncrY -= msTimeCorr / corrRateDEC
-                    else:
-                        self.dithIncrY += msTimeCorr / corrRateDEC
-                elif direction == "s":
-                    if invDEC:
-                        self.dithIncrY += msTimeCorr / corrRateDEC
-                    else:
-                        self.dithIncrY -= msTimeCorr / corrRateDEC
-                else: return
-                
-        elif  controlMode == "serial": #serial control
+        if  controlMode == "serial": #serial control
             try:
                 if direction == "w":
-                    if invAR:
+                    if inv:
                         Stringa = "#:Me#"
                     else:
                         Stringa = "#:Mw#"
                 elif direction == "e":
-                    if invAR:
+                    if inv:
                         Stringa = "#:Mw#"
                     else:
                         Stringa = "#:Me#"
                 elif direction == "n":
-                    if invDEC:
+                    if inv:
                         Stringa = "#:Ms#"
                     else:
                         Stringa = "#:Mn#"
                 elif direction == "s":
-                    if invDEC:
+                    if inv:
                         Stringa = "#:Mn#"
                     else:
                         Stringa = "#:Ms#"
@@ -706,30 +683,49 @@ class Processes(object):
         elif controlMode == "audio": # audio control
             if msTimeCorr != 0:
                 if direction == "w":
-                    if invAR:
+                    if inv:
                         self.soundE.Play(wx.SOUND_ASYNC)
+                        if self.testMode: f=open("E","w")
                     else:
                         self.soundW.Play(wx.SOUND_ASYNC)
+                        if self.testMode: f=open("W","w")
                 elif direction == "e":
-                    if invAR:
+                    if inv:
                         self.soundW.Play(wx.SOUND_ASYNC)
+                        if self.testMode: f=open("W","w")
                     else:
                         self.soundE.Play(wx.SOUND_ASYNC)
+                        if self.testMode: f=open("E","w")
                 elif direction == "n":
-                    if invDEC:
+                    if inv:
                         self.soundS.Play(wx.SOUND_ASYNC)
+                        if self.testMode: f=open("S","w")
                     else:
                         self.soundN.Play(wx.SOUND_ASYNC)
+                        if self.testMode: f=open("N","w")
                 elif direction == "s":
-                    if invDEC:
+                    if inv:
                         self.soundN.Play(wx.SOUND_ASYNC)
+                        if self.testMode: f=open("N","w")
                     else:
                         self.soundS.Play(wx.SOUND_ASYNC)
-                elif direction == "q": self.soundQ.Play(wx.SOUND_ASYNC)
+                        if self.testMode: f=open("S","w")
+                elif direction == "q": 
+                    self.soundQ.Play(wx.SOUND_ASYNC)
+                    if self.testMode:
+                        if (os.path.exists('N')): os.unlink('N')
+                        if (os.path.exists('S')): os.unlink('S')
+                        if (os.path.exists('E')): os.unlink('E')
+                        if (os.path.exists('W')): os.unlink('W')
                 else: return
             if msTimeCorr>0:
                 Sleep(msTimeCorr/1000)
                 self.soundQ.Play(wx.SOUND_ASYNC)
+                if self.testMode:
+                    if (os.path.exists('N')): os.unlink('N')
+                    if (os.path.exists('S')): os.unlink('S')
+                    if (os.path.exists('E')): os.unlink('E')
+                    if (os.path.exists('W')): os.unlink('W')
                 #wx.FutureCall(msTimeCorr,self.soundQ.Play(wx.SOUND_ASYNC))
         
     
@@ -776,49 +772,63 @@ class Processes(object):
         #return state
         return self.deltaX, self.deltaY
        
-    def PIDcontrolReset(self):
+    def GuideCalcReset(self):
         self.deltaXolder = 0
         self.deltaXold = 0
         self.deltaYolder = 0
         self.deltaYold = 0
-        print "PID reset done"
+        self.lastCorrectionX, self.lastCorrectionY = 0, 0
+        print "GuideCalc reset done"
     
-    def PIDcontrol(self, deltaX, deltaY, corrRateX, corrRateY, guideInterval, kp, kd):   # px, px, ms/px, ms/px, s  
-        a1 = datetime.datetime.now() #for speed analysis
-        #kp = 0.66
-        #kd = 0.33
+    def GuideCalc(self, deltaX, deltaY, corrRateX, corrRateY, guideInterval, kp, kd):   # px, px, ms/px, ms/px, s  
+        #a1 = datetime.datetime.now() #for speed analysis
+        #kp = 1
+        #kd = 0.5
+                
         # calculate 2nd order prevision
-        derivativeX = self.deltaXolder - 3*self.deltaXold + 2*deltaX 
+        #deltaXwithoutCorrection = deltaX - self.lastCorrectionX/corrRateX
+        #deltaXforeseenIncrement = self.deltaXolder - 3*self.deltaXold + 2*deltaX
         #derivativeX = -self.deltaXold + *deltaX
-        if derivativeX > 0:
-            derivativeX = min(derivativeX,0.5*deltaX)
-        else:
-            derivativeX = max(derivativeX,0.5*deltaX)
-        derivativeY = self.deltaYolder - 3*self.deltaYold + 2*deltaY
-        if derivativeY > 0:
-            derivativeY = min(derivativeY,0.5*deltaY)
-        else:
-            derivativeY = max(derivativeY,0.5*deltaY)
+#        if derivativeX > 0:
+#            derivativeX = min(derivativeX,0.5*deltaX)
+#        else:
+#            derivativeX = max(derivativeX,0.5*deltaX)
+            
+#        derivativeY = self.deltaYolder - 3*self.deltaYold + 3*deltaY
+#        if derivativeY > 0:
+#            derivativeY = min(derivativeY,0.5*deltaY)
+#        else:
+#            derivativeY = max(derivativeY,0.5*deltaY)
         # apply correction
-        correctionX =int((kp*deltaX + kd*derivativeX) * corrRateX) 
-        correctionY =int((kp*deltaY + kd*derivativeY) * corrRateY) 
+        #correctionX =-int((kp*deltaX + kd*deltaXforeseenIncrement) * corrRateX) 
+        #orrectionY = 0 #-int((kp*deltaY + kd*derivativeY) * corrRateY)
+        #correctionX = -int((2*deltaX - self.deltaXold) * corrRateX)*1
+        correctionX = -int((deltaX + 0.5*deltaX*(1+sign(deltaX)*sign(self.deltaXold))) * corrRateX)*1
+        #correctionX = -int((0.9*deltaX +0.1*(self.deltaXold)) * corrRateX)*1
+        #print self.deltaXold, deltaX, deltaX-self.lastCorrectionX/corrRateX
+        #correctionY = int(self.lastCorrectionY - (2*deltaY - self.deltaYold) * corrRateY)*1
+        correctionY = -int((deltaY + 0.5*deltaY*(1+sign(deltaY)*sign(self.deltaYold))) * corrRateY)*1
+        
         # memorize 
-        self.deltaXolder = self.deltaXold
+        #self.deltaXolder = self.deltaXold
         self.deltaXold = deltaX
-        self.deltaYolder = self.deltaYold
+        #self.deltaYolder = self.deltaYold
         self.deltaYold = deltaY
         # output limiting
         totalCorr = abs(correctionX) + abs(correctionY)
-        if totalCorr > 800 * guideInterval:
-            correctionX *= (800 * guideInterval/totalCorr)
-            correctionY *= (800 * guideInterval/totalCorr)
+        if totalCorr > 900 * guideInterval:
+            correctionX *= (900 * guideInterval/totalCorr)
+            correctionY *= (900 * guideInterval/totalCorr)
+            print "corr reduced by factor ", totalCorr/guideInterval 
             
-        b1 = datetime.datetime.now() #for speed analysis
-        print "pid", b1-a1 #for speed analysis
+        #b1 = datetime.datetime.now() #for speed analysis
+        #print "guidecalc", b1-a1 #for speed analysis
+        self.lastCorrectionX, self.lastCorrectionY = correctionX, correctionY
         return correctionX, correctionY
   
     def GuideGraphDraw(self, frm, data1, data2, data3, data4):
         client = plot.PlotCanvas(frm)
+        client.SetEnableGrid(True)
         frame_size = frm.GetClientSize()
         client.SetInitialSize(size=frame_size)
         client.SetBackgroundColour("#401010")
@@ -849,21 +859,20 @@ class Processes(object):
     def GuideRoutine(self, ARdrift, DECdrift, corrRateAR, corrRateDEC,
                      invAR, invDEC, minARcorr, minDECcorr, controlMode, guideIntervalSec, kp, kd):
         #calculate correction
-        self.ARcorr, self.DECcorr = self.PIDcontrol(ARdrift, DECdrift, corrRateAR, corrRateDEC, guideIntervalSec, kp, kd) 
-        #print "correction before-after PID;", ARdrift, ";",DECdrift,";",ARdriftPID, ";",DECdriftPID
+        self.ARcorr, self.DECcorr = self.GuideCalc(ARdrift, DECdrift, corrRateAR, corrRateDEC, guideIntervalSec, kp, kd) 
         print "Drift: ",round(ARdrift,2), round(DECdrift,2),  "; Corrections in ms:",round(self.ARcorr), round(self.DECcorr)
         #---AR correction
         if abs(self.ARcorr) > minARcorr:
             if self.ARcorr > 0:
-                self.SendMountCommand("w", self.ARcorr, controlMode, invAR, invDEC, corrRateAR, corrRateDEC) #corrRateAR, corrRateDEC used only for test mode
+                self.SendMountCommand("e", self.ARcorr, controlMode, invAR)
             else:
-                self.SendMountCommand("e", -self.ARcorr, controlMode, invAR, invDEC, corrRateAR, corrRateDEC) #corrRateAR, corrRateDEC used only for test mode
+                self.SendMountCommand("w", -self.ARcorr, controlMode, invAR)
         #---DEC correction
         if abs(self.DECcorr) > minDECcorr:
             if self.DECcorr > 0:
-                self.SendMountCommand("n", self.DECcorr, controlMode, invAR, invDEC, corrRateAR, corrRateDEC) #corrRateAR, corrRateDEC used only for test mode
+                self.SendMountCommand("s", self.DECcorr, controlMode, invDEC)
             else:
-                self.SendMountCommand("s", -self.DECcorr, controlMode, invAR, invDEC, corrRateAR, corrRateDEC) #corrRateAR, corrRateDEC used only for test mode
+                self.SendMountCommand("n", -self.DECcorr, controlMode, invDEC)
         #print self.ARcorr, DECcorr
 
     def GuideCalibrationRoutineStart(self, controlMode):
@@ -873,54 +882,55 @@ class Processes(object):
         self.gapPass = False
 
     def GuideCalibrationRoutine(self, actualX, actualY, controlMode, invAR, invDEC, calibrationSize):
-        GAP_SIZE = max(round(calibrationSize*0.1),2) # length of no-calculation track (in order to avoid to compute backlash); min 2px
-        ready = False
-        newInvAR = invAR
-        newInvDEC = invDEC
-        angolo = 0
+        GAP_SIZE = max(round(calibrationSize*0.1), 5) # length of no-calculation track (in order to avoid to compute backlash); min 2px
+        angolo = 0.0
         if self.status == 0:
+            self.newInvAR = invAR
+            self.newInvDEC = invDEC
             self.startX, self.startY = actualX, actualY
-            self.SendMountCommand("n", -1, controlMode, invAR, invDEC)
+            self.SendMountCommand("n", -1, controlMode, invDEC)
             self.status = 1
             self.gapPass = False
         if self.status > 0:
             if sqrt((actualX-self.startX)**2+(actualY-self.startY)**2) >= GAP_SIZE and not self.gapPass:
-                self.startTime = round(1000*time.clock()) #self.startTime = wx.GetLocalTimeMillis() --
+                self.startTime = round(1000*time.time()) #self.startTime = wx.GetLocalTimeMillis() --
                 self.gapPass = True
                 print "gap passed"
                 self.startX, self.startY = actualX, actualY
             if sqrt((actualX-self.startX)**2+(actualY-self.startY)**2) >= calibrationSize and self.gapPass:
                 self.gapPass = False
-                self.stopTime = round(1000*time.clock()) #self.stopTime = wx.GetLocalTimeMillis() --
+                self.stopTime = round(1000*time.time()) #self.stopTime = wx.GetLocalTimeMillis() --
                 self.status += 1
                 print "calibration status = " + str(self.status)
                 if self.status == 2:
                     self.corrRateDEC = (self.stopTime - self.startTime)/sqrt((actualX-self.startX)**2+(actualY-self.startY)**2)
-                    if actualY > self.startY: newInvDEC = -invDEC 
-                    self.SendMountCommand("q", -1, controlMode, invAR, invDEC)
+                    if actualY > self.startY: self.newInvDEC = not invDEC 
+                    self.SendMountCommand("q", -1, controlMode)
                     Sleep(1)
-                    self.SendMountCommand("s", -1, controlMode, invAR, invDEC)
+                    self.SendMountCommand("s", -1, controlMode, invDEC)
                 if self.status == 3:
                     self.corrRateDEC = 0.5*(self.corrRateDEC + (self.stopTime - self.startTime)/sqrt((actualX-self.startX)**2+(actualY-self.startY)**2))
-                    if actualY < self.startY: newInvDEC = -invDEC 
-                    self.SendMountCommand("q", -1, controlMode, invAR, invDEC)
+                    if actualY < self.startY: self.newInvDEC = not invDEC 
+                    self.SendMountCommand("q", -1, controlMode)
                     Sleep(1)
-                    self.SendMountCommand("w", -1, controlMode, invAR, invDEC)
+                    self.SendMountCommand("w", -1, controlMode, invAR)
                 if self.status == 4:
                     self.corrRateAR = (self.stopTime - self.startTime)/sqrt((actualX-self.startX)**2+(actualY-self.startY)**2)
-                    if actualX > self.startX: newInvAR = -invAR 
-                    self.SendMountCommand("q", -1, controlMode, invAR, invDEC)
+                    if actualX > self.startX: self.newInvAR = not invAR 
+                    self.SendMountCommand("q", -1, controlMode)
                     Sleep(1)
-                    self.SendMountCommand("e", -1, controlMode, invAR, invDEC)
+                    self.SendMountCommand("e", -1, controlMode, invAR)
                 if self.status == 5:
                     self.corrRateAR = 0.5*(self.corrRateAR + (self.stopTime - self.startTime)/sqrt((actualX-self.startX)**2+(actualY-self.startY)**2))
-                    if actualX < self.startX: newInvAR = -invAR 
-                    self.SendMountCommand("q", -1, controlMode, invAR, invDEC)
-                    angolo = self.Angolo(actualX-self.startX, actualY-self.startY)
-                    ready = True
+                    if actualX < self.startX: self.newInvAR = not invAR 
+                    self.SendMountCommand("q", -1, controlMode)
+                    angolo = -self.Angolo(actualX-self.startX, actualY-self.startY)
+                    # if only one direction is changed, then change angolo sign
+                    if (self.newInvAR == self.newInvDEC) != (invAR == invDEC): angolo = -angolo
                 self.startX, self.startY = actualX, actualY
-        print round(self.corrRateAR), round(self.corrRateDEC) #correction rate in msec/pixel
-        return self.corrRateAR, self.corrRateDEC, newInvAR, newInvDEC, angolo, ready
+        #print and return correction rate in msec/pixel
+        print round(self.corrRateAR), round(self.corrRateDEC), "; invar-dec:", self.newInvAR, self.newInvDEC, "; angle:", angolo*57.3
+        return self.corrRateAR, self.corrRateDEC, self.newInvAR, self.newInvDEC, angolo, 5 - self.status
 
     def SendPetacCorrection(self, lastInterval, petacVal, mountSpeed, controlMode):
         MAX_CORRECTION_FACT = 0.8
@@ -933,14 +943,14 @@ class Processes(object):
                 #no correction bigger than default interval
                 if millisec < 0 or millisec > MAX_CORRECTION_FACT * petacVal:
                     millisec = MAX_CORRECTION_FACT * petacVal
-                self.SendMountCommand("w", millisec, controlMode, False, False)
+                self.SendMountCommand("w", millisec, controlMode)
             elif ratio > 1 and ratio < MAX_RATIO:
                 millisec = lastInterval*((ratio-1)/(1-ratio*(1-mountSpeed)))
                 print ratio,": moving east for ", millisec, "millisecs"
                 #no correction bigger than default interval
                 if millisec < 0 or millisec > MAX_CORRECTION_FACT * petacVal:
                     millisec = MAX_CORRECTION_FACT * petacVal
-                self.SendMountCommand("e", millisec, controlMode, False, False)
+                self.SendMountCommand("e", millisec, controlMode)
 
     def UpdatePetacValue(self, petacVal, petacIntervals, arDrift, corrRateAR, corrSpeed, invAR):
         #remember that petacVal(msec) is the right (medium) time interval b/w two mouse movements,
@@ -984,4 +994,11 @@ class Processes(object):
             selectedDir = dialog.GetPath()
         dialog.Destroy()
         return selectedDir
+    
+    def CountFiles(self, dirPath):
+        try:
+            num = len(listdir(dirPath))
+        except:
+            num = 0
+        return num
     

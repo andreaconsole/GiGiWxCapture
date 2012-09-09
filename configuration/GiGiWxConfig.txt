@@ -9,9 +9,9 @@ audio
 ----polar alignment invert correction (default value) [0]----
 1
 ----minimum correction in AR, in milliseconds  [200]----
-0
+50
 ----minimum correction in DEC, in milliseconds [300]----
-0
+50
 ----Guide interval in sec [2]----
 2
 ----Max dithering AR in pixel [0]----
@@ -25,15 +25,15 @@ audio
 ----PET-AC slowest mount speed set (0.33x, 1x...) [1]----
 1.0
 ----Hi Sensibility Guide [0]----
-0
+1
 ----Radius of the calibration area (in px) [150]
-150
+50
 ----Kalmann Filter parameters (R, Q) [20, 1]
 20.0
 1.0
 ----PD controller parameters (kp, kd) [0.66, 0.33]
-0.66
-0.33
+0.9
+1.5
 
 
 
