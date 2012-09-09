@@ -43,7 +43,7 @@ class Panel1(wx.Panel):
         try:
             # pick an image file you have in the working folder
             # you can load .jpg  .png  .bmp  or .gif files
-            image_file = 'star.jpg'
+            image_file = '../images/star.jpg'
             #bmp1 = wx.Image(image_file, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
             # image's upper left corner anchors at panel coordinates (0, 0)
             self.im = Image.open(image_file)
@@ -58,7 +58,7 @@ class Controls(object):
     def __init__(self,parent):
         self.drawSpeed = 300
         controlSpeed = 50
-        self.frame1 = wx.Frame(None, -1, "An image on a panel", size=(500, 500))
+        self.frame1 = wx.Frame(None, -1, "loading title...", size=(500, 400))
         # create the class instance
         self.panel1 = Panel1(self.frame1) 
         self.panel1.setAngle = wx.TextCtrl(self.panel1, -1, "0", (10,0),(30,20))
