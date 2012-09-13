@@ -906,7 +906,7 @@
           <object class="sizeritem">
             <object class="wxToggleButton" name="showdeccorr">
               <label>DEC corr</label>
-              <fg>#ADD8E6</fg>
+              <fg>#00CC00</fg>
             </object>
             <option>1</option>
           </object>

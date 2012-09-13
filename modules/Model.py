@@ -50,12 +50,6 @@ atan = math.atan
 pi = math.pi
 atan2 = math.atan2
 hypot = math.hypot
-def sign(x): 
-    if x >= 0: 
-        y = 1
-    else:
-        y= -1
-    return y
 
 class Configuration(object):
     def __init__(self, configFileName, tempFileName, languageFileName):
@@ -149,7 +143,7 @@ class Configuration(object):
 
 class Processes(object):
 
-    def __init__(self, dcScreen):
+    def __init__(self, dcScreen, testMode = False):
         self.dcScreen = dcScreen
         self.ser = None #initialize the serial port variable
         self.deviazione = 0
@@ -163,11 +157,13 @@ class Processes(object):
         self.pixelBuffer = numpy.zeros((self.screenSizeX*self.screenSizeY*3), dtype=numpy.single)
         self.pixelTempBuffer = numpy.zeros((self.screenSizeX*self.screenSizeY*3), dtype=numpy.uint8)#numpy.uint8)  
         self.bitmap=wx.EmptyBitmap(self.screenSizeX, self.screenSizeY,-1)
-        self.memory=wx.MemoryDC()
+        self.memory = wx.MemoryDC()
+        self.memory1 = wx.MemoryDC()
+        self.memory2 = wx.MemoryDC()
         self.FWHM = 0
+        self.testMode = testMode
         #----------constS
-        # Warning: testmode works only in audio mode; don't forget to to put testmode on False when finished testing...
-        self.testMode = True
+       
         
 
     def InitSerial(self,which,baudrateVal = 9600):
@@ -242,10 +238,10 @@ class Processes(object):
 
     def ZoomRefresh(self, ZoomFrame, zoomSizeX, zoomSizeY, xs, ys):
         bitmap=wx.EmptyBitmap(zoomSizeX//2 ,zoomSizeY//2,-1)
-        self.memory.SelectObject(bitmap)
-        self.memory.Blit(0,0,zoomSizeX//2,zoomSizeY//2,self.dcScreen,
+        self.memory1.SelectObject(bitmap)
+        self.memory1.Blit(0,0,zoomSizeX//2,zoomSizeY//2,self.dcScreen,
                     xs-zoomSizeX//4,ys-zoomSizeY//4)
-        self.memory.SelectObject(wx.NullBitmap)
+        self.memory1.SelectObject(wx.NullBitmap)
         dcZoom = wx.PaintDC(ZoomFrame)
         dcZoom.SetUserScale(2,2)
         dcZoom.DrawBitmap(bitmap, 0, 0, False)
@@ -311,12 +307,15 @@ class Processes(object):
         return field
 
     def SavePicture(self, winPosX, winPosY, winSizeX, winSizeY, nomefile):
+        try:
             bitmap=wx.EmptyBitmap(winSizeX, winSizeY,-1)
-            self.memory.SelectObject(bitmap)
-            self.memory.Blit(0,0,winSizeX,winSizeY,self.dcScreen,winPosX,winPosY)
-            self.memory.SelectObject(wx.NullBitmap)
+            self.memory2.SelectObject(bitmap)
+            self.memory2.Blit(0,0,winSizeX,winSizeY,self.dcScreen,winPosX,winPosY)
+            self.memory2.SelectObject(wx.NullBitmap)
             img=wx.ImageFromBitmap(bitmap)
             img.SaveFile(nomefile,1)
+        except:
+            print "cannot save image"
 
     def StarTrack(self, actualX, actualY, iter, reset, starFilter, winPosX, winPosY, winSizeX, winSizeY):
     # centers the star and finds fwhm; track radius = 9px
@@ -685,47 +684,55 @@ class Processes(object):
                 if direction == "w":
                     if inv:
                         self.soundE.Play(wx.SOUND_ASYNC)
-                        if self.testMode: f=open("E","w")
+                        if self.testMode: self.f=open("E","w")
                     else:
                         self.soundW.Play(wx.SOUND_ASYNC)
-                        if self.testMode: f=open("W","w")
+                        if self.testMode: self.f=open("W","w")
                 elif direction == "e":
                     if inv:
                         self.soundW.Play(wx.SOUND_ASYNC)
-                        if self.testMode: f=open("W","w")
+                        if self.testMode: self.f=open("W","w")
                     else:
                         self.soundE.Play(wx.SOUND_ASYNC)
-                        if self.testMode: f=open("E","w")
+                        if self.testMode: self.f=open("E","w")
                 elif direction == "n":
                     if inv:
                         self.soundS.Play(wx.SOUND_ASYNC)
-                        if self.testMode: f=open("S","w")
+                        if self.testMode: self.f=open("S","w")
                     else:
                         self.soundN.Play(wx.SOUND_ASYNC)
-                        if self.testMode: f=open("N","w")
+                        if self.testMode: self.f=open("N","w")
                 elif direction == "s":
                     if inv:
                         self.soundN.Play(wx.SOUND_ASYNC)
-                        if self.testMode: f=open("N","w")
+                        if self.testMode: self.f=open("N","w")
                     else:
                         self.soundS.Play(wx.SOUND_ASYNC)
-                        if self.testMode: f=open("S","w")
+                        if self.testMode: self.f=open("S","w")
                 elif direction == "q": 
                     self.soundQ.Play(wx.SOUND_ASYNC)
                     if self.testMode:
-                        if (os.path.exists('N')): os.unlink('N')
-                        if (os.path.exists('S')): os.unlink('S')
-                        if (os.path.exists('E')): os.unlink('E')
-                        if (os.path.exists('W')): os.unlink('W')
+                        try:
+                            self.f.close()
+                            if (os.path.exists('N')): os.unlink('N')
+                            if (os.path.exists('S')): os.unlink('S')
+                            if (os.path.exists('E')): os.unlink('E')
+                            if (os.path.exists('W')): os.unlink('W')
+                        except:
+                            pass
                 else: return
             if msTimeCorr>0:
                 Sleep(msTimeCorr/1000)
                 self.soundQ.Play(wx.SOUND_ASYNC)
                 if self.testMode:
-                    if (os.path.exists('N')): os.unlink('N')
-                    if (os.path.exists('S')): os.unlink('S')
-                    if (os.path.exists('E')): os.unlink('E')
-                    if (os.path.exists('W')): os.unlink('W')
+                    try:
+                        self.f.close()
+                        if (os.path.exists('N')): os.unlink('N')
+                        if (os.path.exists('S')): os.unlink('S')
+                        if (os.path.exists('E')): os.unlink('E')
+                        if (os.path.exists('W')): os.unlink('W')
+                    except:
+                        pas
                 #wx.FutureCall(msTimeCorr,self.soundQ.Play(wx.SOUND_ASYNC))
         
     
@@ -780,11 +787,24 @@ class Processes(object):
         self.lastCorrectionX, self.lastCorrectionY = 0, 0
         print "GuideCalc reset done"
     
-    def GuideCalc(self, deltaX, deltaY, corrRateX, corrRateY, guideInterval, kp, kd):   # px, px, ms/px, ms/px, s  
-        #a1 = datetime.datetime.now() #for speed analysis
-        #kp = 1
-        #kd = 0.5
-                
+    def GuideCalc(self, deltaX, deltaY, corrRateX, corrRateY):   # px, px
+	    #a1 = datetime.datetime.now() #for speed analysis
+        
+        def sign(x):
+            if x>0:
+                y = 1
+            elif x==0:
+                y = 0
+            else:
+                y = -1
+            return y
+        
+        def absSign(x):
+            if x == 0:
+                y = 0
+            else:
+                y = 1
+            return y     
         # calculate 2nd order prevision
         #deltaXwithoutCorrection = deltaX - self.lastCorrectionX/corrRateX
         #deltaXforeseenIncrement = self.deltaXolder - 3*self.deltaXold + 2*deltaX
@@ -803,12 +823,11 @@ class Processes(object):
         #correctionX =-int((kp*deltaX + kd*deltaXforeseenIncrement) * corrRateX) 
         #orrectionY = 0 #-int((kp*deltaY + kd*derivativeY) * corrRateY)
         #correctionX = -int((2*deltaX - self.deltaXold) * corrRateX)*1
-        correctionX = -int((deltaX + 0.5*deltaX*(1+sign(deltaX)*sign(self.deltaXold))) * corrRateX)*1
+        correctionX = -int((1 + self.k1*(1+sign(deltaX)*sign(self.deltaXold))) * deltaX * corrRateX)
         #correctionX = -int((0.9*deltaX +0.1*(self.deltaXold)) * corrRateX)*1
         #print self.deltaXold, deltaX, deltaX-self.lastCorrectionX/corrRateX
         #correctionY = int(self.lastCorrectionY - (2*deltaY - self.deltaYold) * corrRateY)*1
-        correctionY = -int((deltaY + 0.5*deltaY*(1+sign(deltaY)*sign(self.deltaYold))) * corrRateY)*1
-        
+        correctionY = -int((1 + self.k1*(1+sign(deltaY)*sign(self.deltaYold))) * deltaY * corrRateY)
         # memorize 
         #self.deltaXolder = self.deltaXold
         self.deltaXold = deltaX
@@ -816,39 +835,46 @@ class Processes(object):
         self.deltaYold = deltaY
         # output limiting
         totalCorr = abs(correctionX) + abs(correctionY)
-        if totalCorr > 900 * guideInterval:
-            correctionX *= (900 * guideInterval/totalCorr)
-            correctionY *= (900 * guideInterval/totalCorr)
-            print "corr reduced by factor ", totalCorr/guideInterval 
+        if totalCorr > 900 * self.guideInterval:
+            correctionX *= (900 * self.guideInterval/totalCorr)
+            correctionY *= (900 * self.guideInterval/totalCorr)
+            print "corr reduced by factor ", totalCorr/self.guideInterval 
             
         #b1 = datetime.datetime.now() #for speed analysis
         #print "guidecalc", b1-a1 #for speed analysis
         self.lastCorrectionX, self.lastCorrectionY = correctionX, correctionY
         return correctionX, correctionY
   
-    def GuideGraphDraw(self, frm, data1, data2, data3, data4):
-        client = plot.PlotCanvas(frm)
-        client.SetEnableGrid(True)
+    def GuideGraphInit(self, frm):
+        self.client = plot.PlotCanvas(frm)
+        self.client.SetBackgroundColour("#401010")
+        self.client.SetForegroundColour("#ADD8E6")
+        self.client.SetEnableGrid(True)
+        self.client.SetEnableLegend(True)
         frame_size = frm.GetClientSize()
-        client.SetInitialSize(size=frame_size)
-        client.SetBackgroundColour("#401010")
-        client.SetForegroundColour("#ADD8E6")
-        line1 = plot.PolyLine(data1, legend='', colour='red', width=1)
-        line2 = plot.PolyLine(data2, legend='', colour='blue', width=1)
-        line3 = plot.PolyLine(data3, legend='', colour='orange', width=1)
-        line4 = plot.PolyLine(data4, legend='', colour='lightblue', width=1)
-        data = data1+data2+data3+data4
-        x = map(lambda c:  c[0] , data)
-        y = map(lambda c:  c[1] , data)
+        self.client.SetInitialSize(size=frame_size)
+        
+    def GuideGraphDraw(self, frm, data1, data2, data3, data4):
+        frame_size = frm.GetClientSize()
+        self.client.SetSize(size=frame_size)
+        line1 = plot.PolyLine(data1, legend='AR', colour='red', width=1)
+        line2 = plot.PolyLine(data2, legend='DEC', colour='blue', width=1)
+        line3 = plot.PolyLine(data3, legend='AR corr', colour='orange', width=1)
+        line4 = plot.PolyLine(data4, legend='DEC corr', colour='green', width=1)
         gc = plot.PlotGraphics([line1, line2, line3, line4])
-        #client.Draw(gc,  xAxis= (min(x),max(x+[10])), yAxis= (min(y+[-0.5])-0.1,max(y+[0.5])+0.1))
         try:
-            client.Draw(gc,  xAxis= (min(x),max(x+[10])), yAxis= (min(y)-0.1,max(y)+0.1))
+            self.client.Draw(gc)
         except:
             pass
         
-    def GuideRoutineStart(self, controlMode):
+    def GuideRoutineStart(self, invAR, invDEC, minARcorr, minDECcorr, guideInterval, k1, k2, controlMode):
         self.ARcorr, self.DECcorr = 0, 0
+        self.invAR, self.invDEC = invAR, invDEC
+        self.minARcorr, self.minDECcorr = minARcorr, minDECcorr
+        self.guideInterval = guideInterval
+        self.k1, self.k2 = k1, k2 
+        self.controlMode = controlMode
+        print "guide params: ", self.invAR, self.invDEC, self.minARcorr, self.minDECcorr, k1, k2, self.controlMode
         
     def GuideLastARcorr(self):
         return self.ARcorr
@@ -856,25 +882,24 @@ class Processes(object):
     def GuideLastDECcorr(self):
         return self.DECcorr
 
-    def GuideRoutine(self, ARdrift, DECdrift, corrRateAR, corrRateDEC,
-                     invAR, invDEC, minARcorr, minDECcorr, controlMode, guideIntervalSec, kp, kd):
+    def GuideRoutine(self, ARdrift, DECdrift, corrRateAR, corrRateDEC):
         #calculate correction
-        self.ARcorr, self.DECcorr = self.GuideCalc(ARdrift, DECdrift, corrRateAR, corrRateDEC, guideIntervalSec, kp, kd) 
+        self.corrRateAR, self.corrRateDEC = corrRateAR, corrRateDEC
+        self.ARcorr, self.DECcorr = self.GuideCalc(ARdrift, DECdrift, corrRateAR, corrRateDEC)
         print "Drift: ",round(ARdrift,2), round(DECdrift,2),  "; Corrections in ms:",round(self.ARcorr), round(self.DECcorr)
         #---AR correction
-        if abs(self.ARcorr) > minARcorr:
+        if abs(self.ARcorr) > self.minARcorr:
             if self.ARcorr > 0:
-                self.SendMountCommand("e", self.ARcorr, controlMode, invAR)
+                self.SendMountCommand("e", self.ARcorr, self.controlMode, self.invAR)
             else:
-                self.SendMountCommand("w", -self.ARcorr, controlMode, invAR)
+                self.SendMountCommand("w", -self.ARcorr, self.controlMode, self.invAR)
         #---DEC correction
-        if abs(self.DECcorr) > minDECcorr:
+        if abs(self.DECcorr) > self.minDECcorr:
             if self.DECcorr > 0:
-                self.SendMountCommand("s", self.DECcorr, controlMode, invDEC)
+                self.SendMountCommand("s", self.DECcorr, self.controlMode, self.invDEC)
             else:
-                self.SendMountCommand("n", -self.DECcorr, controlMode, invDEC)
-        #print self.ARcorr, DECcorr
-
+                self.SendMountCommand("n", -self.DECcorr, self.controlMode, self.invDEC)
+        
     def GuideCalibrationRoutineStart(self, controlMode):
         self.status = 0
         self.timeForCalSizeAlongX, self.timeForCalSizeAlongY = 0, 0
@@ -997,7 +1022,7 @@ class Processes(object):
     
     def CountFiles(self, dirPath):
         try:
-            num = len(listdir(dirPath))
+            num = len(os.listdir(dirPath))
         except:
             num = 0
         return num

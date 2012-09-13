@@ -42,9 +42,11 @@ import Model
 
 class Controller(object):
     def __init__(self,parent):
+        self.testMode = False
+        self.testModeCounter = 0
         self.dcScreen=wx.ScreenDC()
         self.dcScreen.SetBrush(wx.TRANSPARENT_BRUSH)
-        self.Processes=Model.Processes(self.dcScreen)
+        self.Processes=Model.Processes(self.dcScreen, self.testMode)
         self.Configuration=Model.Configuration("../configuration/GiGiWxConfig.txt", "../configuration/temp", "../language")
         #----------main frame
         resource=xrc.XmlResource(path.abspath("gigiwxGUI.xrc"))
@@ -336,8 +338,8 @@ class Controller(object):
         self.MainFrame.calibrationSize.Value = "150"
         self.R = 20
         self.Q = 1
-        self.kp = 0.66
-        self.kd = 0.33
+        self.k1 = 0.5
+        self.k2 = 0
         self.configLines = self.Configuration.ConfigLines()
         try:
             if self.configLines[5]<>"": self.MainFrame.languagecombo.Value = strip(self.configLines[5])
@@ -357,8 +359,8 @@ class Controller(object):
             if self.configLines[29]<>"": self.MainFrame.calibrationSize.Value = str(self.Processes.ExtractInt(self.configLines[29]))
             if self.configLines[31]<>"": self.R = self.Processes.ExtractFloat(self.configLines[31])
             if self.configLines[32]<>"": self.Q = self.Processes.ExtractFloat(self.configLines[32])
-            if self.configLines[34]<>"": self.kp = self.Processes.ExtractFloat(self.configLines[34])
-            if self.configLines[35]<>"": self.kd = self.Processes.ExtractFloat(self.configLines[35])
+            if self.configLines[34]<>"": self.k1 = self.Processes.ExtractFloat(self.configLines[34])
+            if self.configLines[35]<>"": self.k2 = self.Processes.ExtractFloat(self.configLines[35])
         except:
             pass
             
@@ -378,8 +380,8 @@ class Controller(object):
         self.configLines[29] = str(self.Processes.ExtractInt(self.MainFrame.calibrationSize.Value))
         self.configLines[31] = str(self.R)
         self.configLines[32] = str(self.Q)
-        self.configLines[34] = str(self.kp)
-        self.configLines[35] = str(self.kd)
+        self.configLines[34] = str(self.k1)
+        self.configLines[35] = str(self.k2)
         self.Configuration.ConfigLinesUpdate(self.configLines)
     
     def LoadTemp(self):
@@ -550,16 +552,16 @@ class Controller(object):
             self.meanDECdrift = 0
             self.MainFrame.guideSpeed.SetSelection(0)
             self.MainFrame.guideSpeed1.SetSelection(0)
-            self.Processes.SendMountCommand("0", -1, self.controlMode) #set speed to "min speed" (min)
-            self.Processes.GuideRoutineStart(self.controlMode)
             self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 20, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
             self.guideCenterX, self.guideCenterY = self.actualX, self.actualY
-            self.minARcorr, self.minDECcorr = float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value)
             self.dithInterval = float(self.MainFrame.dithInterval.Value)
             self.Processes.DitheringInit(float(self.MainFrame.maxDithering.Value), float(self.MainFrame.dithStep.Value))
             self.starTracking = True
             self.ditherCount = self.Processes.CountFiles(self.imagesPath)
             self.guideIntervalSec = float(self.MainFrame.guideInterval.Value)
+            self.Processes.SendMountCommand("0", -1, self.controlMode) #set speed to "min speed" (min)
+            self.Processes.GuideRoutineStart(self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value,
+                                             float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value), self.guideIntervalSec, self.k1, self.k2, self.controlMode)
             if self.guideIntervalSec > 0:
                 self.OnGraphFrame(None)
                 self.calcClock.Stop()
@@ -605,8 +607,7 @@ class Controller(object):
             self.MainFrame.petacMountLowSpeed.Enabled = False
             self.MainFrame.petacMaxDithering.Enabled = False
             self.MainFrame.petacDithStep.Enabled = False
-            self.guideCenterX, self.guideCenterY =self.actualX, self.actualY
-            self.minARcorr, self.minDECcorr = float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value)
+            self.guideCenterX, self.guideCenterY = self.actualX, self.actualY
             self.Processes.DitheringInit(float(self.MainFrame.petacMaxDithering.Value), float(self.MainFrame.petacDithStep.Value))
             self.guideIntervalSec = float(self.MainFrame.guideInterval.Value)
             self.petacVal = float(self.MainFrame.petacValue.Value) #retrieve last petac value
@@ -847,6 +848,7 @@ class Controller(object):
         self.MainFrame.AboutFrame.Hide()
         
     def OnGraphFrame(self,evt):
+        self.Processes.GuideGraphInit (self.MainFrame.GraphFrame.graphPanel)
         self.MainFrame.GraphFrame.Show()
         self.GuideGraphUpdate()
     
@@ -1140,8 +1142,7 @@ class Controller(object):
                 self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 10, True, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
                 if abs(self.actualX-latestX) >= self.MIN_SHIFT_TO_GUIDE or abs(self.actualY-latestY) >= self.MIN_SHIFT_TO_GUIDE:
                     print "Dithering..."
-                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value),
-                                                                        self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, self.minARcorr, self.minDECcorr, self.controlMode, self.guideIntervalSec))
+                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value)))
                 #apply pet-ac correction if needed
                 if self.lastMoveTime > 0 and self.petacVal > 0:
                     print "movement interval: ", self.movementTime-self.lastMoveTime
@@ -1276,13 +1277,11 @@ class Controller(object):
                 
                 if (self.timeFromLastGuide.Time()//1000 > self.guideIntervalSec) and (self.guideIntervalSec > 0):
                     if (self.dithInterval != 0):
+                        print self.imagesPath, self.Processes.CountFiles(self.imagesPath), self.ditherCount, self.dithInterval
                         if (self.Processes.CountFiles(self.imagesPath) >= (self.ditherCount + self.dithInterval)):
                             self.ditherCount = self.Processes.CountFiles(self.imagesPath)
                             self.Processes.DitheringUpdate() 
-                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value), 
-                                                                         self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, 
-                                                                         self.minARcorr, self.minDECcorr, self.controlMode, 
-                                                                         self.guideIntervalSec, self.kp, self.kd))
+                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value)))
 
                     
                           
@@ -1302,6 +1301,14 @@ class Controller(object):
                     self.decErrList.append((ElapsedTime, deltaDEC))
                     self.arCorrList.append((ElapsedTime, round(float(self.Processes.GuideLastARcorr())/(float(self.MainFrame.arGuideValue.Value)+1),2)))
                     self.decCorrList.append((ElapsedTime, round(float(self.Processes.GuideLastDECcorr())/(float(self.MainFrame.decGuideValue.Value)+1),2)))
+                    #---save image in testmode
+                    if self.testMode:
+                        self.testModeCounter += 1
+                        if (self.testModeCounter%5 == 0):
+                            filename = "../savedBMP/testmode_"+str(self.testModeCounter)
+                            self.Processes.SavePicture(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, filename)
+                            print "saved test image"
+                    #------------------------------
                     self.GuideGraphUpdate()
                     self.timeFromLastGuide.Start() #reset stopwatch
 
