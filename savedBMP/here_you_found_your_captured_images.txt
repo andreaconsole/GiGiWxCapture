@@ -1,0 +1,1 @@
+when you use the tool "take a picture", your images will be saved here 
