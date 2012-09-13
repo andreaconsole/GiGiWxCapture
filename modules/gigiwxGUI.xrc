@@ -914,8 +914,8 @@
             <object class="wxBoxSizer">
               <object class="sizeritem">
                 <object class="wxTextCtrl" name="numpoints">
-                  <size>30,20</size>
-                  <value>30</value>
+                  <size>60,20</size>
+                  <value>1000</value>
                   <bg>#A56363</bg>
                   <style>wxSIMPLE_BORDER</style>
                 </object>

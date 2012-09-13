@@ -2,7 +2,8 @@
 GiGiWxCapture 2.1
 
 *Updates* 
-13/09/2012 -> 2.1 -     Major improvement to autoguide alghorithm
+XX/XX/2012 -> 2.1 -     Not happy with PD control -> created new robust way for autoguiding!
+
 30/08/2012 -> 2.0 -     code efficiency upgrade, improved algorithm for star position
                         calculation, image noise filtering added, kalman filter added 
                         to reduce  seeing effects, big  improvement to autoguide code

@@ -284,6 +284,10 @@ class Controller(object):
         self.ditherCount = 0
         self.lastMoveTime = 0
         self.movementTime = 0
+        self.arErrList = [(0.0,0.0)]
+        self.decErrList = [(0.0,0.0)]
+        self.arCorrList = [(0.0,0.0)]
+        self.decCorrList = [(0.0,0.0)]
         self.FilterChanged(True)
         self.Processes.KalmanFilterReset()
         self.Processes.GuideCalcReset()
@@ -1270,14 +1274,12 @@ class Controller(object):
                     print self.arErrList[-1]
 
             elif self.status == "guiding":
-                #print self.angolo*180/3.1415
                 guideCenterXdith, guideCenterYdith = self.Processes.DitheringAdd(self.guideCenterX, self.guideCenterY)
                 deltaAR, deltaDEC = self.Processes.CoordConvert(self.actualX - guideCenterXdith, self.actualY - guideCenterYdith, self.angolo)
                 deltaAR, deltaDEC = self.Processes.KalmanFilter(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), self.R, self.Q)
                 
                 if (self.timeFromLastGuide.Time()//1000 > self.guideIntervalSec) and (self.guideIntervalSec > 0):
                     if (self.dithInterval != 0):
-                        print self.imagesPath, self.Processes.CountFiles(self.imagesPath), self.ditherCount, self.dithInterval
                         if (self.Processes.CountFiles(self.imagesPath) >= (self.ditherCount + self.dithInterval)):
                             self.ditherCount = self.Processes.CountFiles(self.imagesPath)
                             self.Processes.DitheringUpdate() 
