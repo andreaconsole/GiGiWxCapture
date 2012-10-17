@@ -14,42 +14,59 @@
             <pos>5,40</pos>
             <size>150,-1</size>
             <style>wxLI_HORIZONTAL</style>
-          </object>
-          <object class="wxComboBox" name="mountportcombo">
-            <pos>5,50</pos>
-            <size>150,25</size>
-            <bg>#a56363</bg>
-            <style>wxCB_READONLY</style>
-          </object>
+          </object> 
           <object class="wxStaticText" name="mountportt">
-            <pos>10,77</pos>
+            <pos>10,45</pos>
             <size>150,15</size>
             <label>Mount port</label>
             <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxComboBox" name="mountportcombo">
+            <pos>5,65</pos>
+            <size>150,25</size>
+            <bg>#a56363</bg>
+            <style>wxCB_READONLY</style>
           </object>
           <object class="wxStaticLine" name="configfileline">
             <pos>5,95</pos>
             <size>150,-1</size>
             <style>wxLI_HORIZONTAL</style>
           </object>
+          <object class="wxStaticText" name="camportt">
+            <pos>10,100</pos>
+            <size>150,15</size>
+            <label>Camera LE port</label>
+            <fg>#ADD8E6</fg>
+          </object>
+          <object class="wxComboBox" name="camportcombo">
+            <pos>5,120</pos>
+            <size>150,25</size>
+            <bg>#a56363</bg>
+            <style>wxCB_READONLY</style>
+          </object>
+          <object class="wxStaticLine" name="configfileline">
+            <pos>5,150</pos>
+            <size>150,-1</size>
+            <style>wxLI_HORIZONTAL</style>
+          </object>
           <object class="wxButton" name="savecurrentconfig">
-            <pos>5,100</pos>
+            <pos>5,160</pos>
             <size>150,25</size>
             <label>Save Current Config.</label>
           </object>
           <object class="wxButton" name="reloadconfig">
-            <pos>5,125</pos>
+            <pos>5,190</pos>
             <size>150,25</size>
             <label>Reload Config</label>
           </object>
           <object class="wxComboBox" name="languagecombo">
-            <pos>5,180</pos>
+            <pos>5,230</pos>
             <size>80,25</size>
             <bg>#a56363</bg>
             <style>wxCB_READONLY</style>
           </object>
           <object class="wxStaticText" name="languaget">
-            <pos>90,185</pos>
+            <pos>90,235</pos>
             <size>100,15</size>
             <label>Language</label>
             <fg>#ADD8E6</fg>
@@ -511,7 +528,8 @@
           <object class="wxToggleButton" name="crosshair">
             <pos>5,10</pos>
             <size>150,25</size>
-            <label>Crosshair</label>
+            <label>Crosshair - Collimator</label>
+            <tooltip>To modify: Right click on screen-pageUp-pageDown-SpaceBar - see help for more info</tooltip>
           </object>
           <object class="wxToggleButton" name="fwhm">
             <pos>5,35</pos>
@@ -914,7 +932,7 @@
             <object class="wxBoxSizer">
               <object class="sizeritem">
                 <object class="wxTextCtrl" name="numpoints">
-                  <size>60,20</size>
+                  <size>50,20</size>
                   <value>1000</value>
                   <bg>#A56363</bg>
                   <style>wxSIMPLE_BORDER</style>

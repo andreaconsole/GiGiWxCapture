@@ -178,6 +178,7 @@ class Processes(object):
         print self.ser.portstr
 
     def InitAudio(self):
+        self.soundCamera = wx.Sound(os.path.abspath("../audio/camera.wav"))
         self.soundN = wx.Sound(os.path.abspath("../audio/c1.wav"))
         self.soundS = wx.Sound(os.path.abspath("../audio/c4.wav"))
         self.soundW = wx.Sound(os.path.abspath("../audio/c8.wav"))
@@ -246,7 +247,8 @@ class Processes(object):
         dcZoom.SetUserScale(2,2)
         dcZoom.DrawBitmap(bitmap, 0, 0, False)
 
-    def SetCrosshair(self, winPosX, winPosY, winSizeX, winSizeY, crosshairXs, crosshairYs):
+    def SetCrosshair(self, winPosX, winPosY, winSizeX, winSizeY, crosshairXs, crosshairYs, bigLinePosizion):
+        largeLine = 50
         crosshairList = [
             (winPosX,crosshairYs,winPosX+winSizeX,crosshairYs),
             (crosshairXs,winPosY,crosshairXs,winPosY+winSizeY)
@@ -278,8 +280,11 @@ class Processes(object):
         while y<winPosY+winSizeY:
             crosshairList.append((crosshairXs-(7+3*large),y,crosshairXs+(7+3*large),y))
             y+=50
-            large = -large
-
+            large = -large          
+        crosshairList.append((crosshairXs-largeLine, crosshairYs-bigLinePosizion,crosshairXs+largeLine,crosshairYs-bigLinePosizion))
+        crosshairList.append((crosshairXs-largeLine, crosshairYs+bigLinePosizion,crosshairXs+largeLine,crosshairYs+bigLinePosizion))
+        crosshairList.append((crosshairXs-bigLinePosizion, crosshairYs-largeLine,crosshairXs-bigLinePosizion,crosshairYs+largeLine))
+        crosshairList.append((crosshairXs+bigLinePosizion, crosshairYs-largeLine,crosshairXs+bigLinePosizion,crosshairYs+largeLine))
         return crosshairList
 
     def CalcId(self):
@@ -671,7 +676,7 @@ class Processes(object):
                 if msTimeCorr != 0: 
                     self.ser.write(Stringa)
                 if msTimeCorr < 0: #and direction == "q":
-                    Sleep(1) #interval to not saturate serial port
+                    Sleep(0.2) #interval to not saturate serial port
                 if msTimeCorr > 0:
                     Sleep(msTimeCorr/1000)
                     self.ser.write("#:Q#")
@@ -732,10 +737,25 @@ class Processes(object):
                         if (os.path.exists('E')): os.unlink('E')
                         if (os.path.exists('W')): os.unlink('W')
                     except:
-                        pas
-                #wx.FutureCall(msTimeCorr,self.soundQ.Play(wx.SOUND_ASYNC))
-        
+                        pass
     
+    def SetCamLE(self, value, controlMode):
+        if  controlMode == "serial": #serial control
+            try:            
+                self.ser.setDTR(value)
+            except:
+                print "serial error"
+
+        elif controlMode == "audio": # audio control
+            print "LE=", value
+            try:
+                if value:
+                    self.soundCamera.Play(wx.SOUND_LOOP)
+                else:
+                    self.soundCamera.Stop()
+            except:
+                print "audio error"
+            
     def KalmanFilterReset(self):
         self.P11, self.P12, self.P21, self.P22 = 0,0,0,0
         self.K11, self.K12, self.K21, self.K22 = 0,0,0,0

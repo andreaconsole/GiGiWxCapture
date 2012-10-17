@@ -42,6 +42,8 @@ import Model
 
 class Controller(object):
     def __init__(self,parent):
+        #sys.stdout = self.filelog #redirect text output to log file
+        #sys.stderr = self.filelog #redirect error output to log file
         self.testMode = False
         self.testModeCounter = 0
         self.dcScreen=wx.ScreenDC()
@@ -66,6 +68,7 @@ class Controller(object):
         self.MainFrame.Bind(wx.EVT_BUTTON, self.ShowVampire, id=xrc.XRCID("selectcapturewindow"))
         self.MainFrame.Bind(wx.EVT_BUTTON, self.SaveCurrentConfiguration, id=xrc.XRCID("savecurrentconfig"))
         self.MainFrame.Bind(wx.EVT_BUTTON, self.LoadConfig, id=xrc.XRCID("reloadconfig"))
+
         self.MainFrame.mountportcombo = xrc.XRCCTRL(self.MainFrame, "mountportcombo")
         self.MainFrame.Bind(wx.EVT_COMBOBOX, self.MountPortSelect, id=xrc.XRCID("mountportcombo"))
         self.MainFrame.mountportcombo.Insert("none",0)
@@ -73,6 +76,15 @@ class Controller(object):
         for i in range(0,16):
             self.MainFrame.mountportcombo.Insert("serial "+str(i),i+2)
         self.MainFrame.mountportcombo.SetValue("none")
+        
+        self.MainFrame.camportcombo = xrc.XRCCTRL(self.MainFrame, "camportcombo")
+        self.MainFrame.Bind(wx.EVT_COMBOBOX, self.CamPortSelect, id=xrc.XRCID("camportcombo"))
+        self.MainFrame.camportcombo.Insert("none",0)
+        self.MainFrame.camportcombo.Insert("audio",1)
+        for i in range(0,16):
+            self.MainFrame.camportcombo.Insert("serial "+str(i),i+2)
+        self.MainFrame.camportcombo.SetValue("none")
+
         self.MainFrame.languagecombo = xrc.XRCCTRL(self.MainFrame, "languagecombo")
         self.MainFrame.Bind(wx.EVT_COMBOBOX, self.LanguageSelect, id=xrc.XRCID("languagecombo"))
         languageList = self.Configuration.ListFiles("../language")
@@ -292,8 +304,6 @@ class Controller(object):
         self.Processes.KalmanFilterReset()
         self.Processes.GuideCalcReset()
         self.SetStatus("idle")
-        #sys.stdout = self.filelog #redirect text output to log file
-        #sys.stderr = self.filelog #redirect error output to log file
 
 #---- config&load
     def LoadConfig(self,evt):
@@ -348,44 +358,46 @@ class Controller(object):
         try:
             if self.configLines[5]<>"": self.MainFrame.languagecombo.Value = strip(self.configLines[5])
             if self.configLines[7]<>"": self.MainFrame.mountportcombo.Value = strip(self.configLines[7])
-            if self.configLines[9]<>"": self.MainFrame.invertCorrection.Value = bool(self.Processes.ExtractInt(self.configLines[9]))
-            if self.configLines[11]<>"": self.MainFrame.arMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[11]))
-            if self.configLines[13]<>"": self.MainFrame.decMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[13]))
-            if self.configLines[15]<>"": self.MainFrame.guideInterval.Value = str(self.Processes.ExtractInt(self.configLines[15]))
-            if self.configLines[17]<>"": self.MainFrame.maxDithering.Value = str(self.Processes.ExtractInt(self.configLines[17]))
-            if self.configLines[17]<>"": self.MainFrame.petacMaxDithering.Value = str(self.Processes.ExtractInt(self.configLines[17]))
-            if self.configLines[19]<>"": self.MainFrame.dithStep.Value = str(self.Processes.ExtractInt(self.configLines[19]))
-            if self.configLines[19]<>"": self.MainFrame.petacDithStep.Value = str(self.Processes.ExtractInt(self.configLines[19]))
-            if self.configLines[21]<>"": self.MainFrame.dithInterval.Value = str(self.Processes.ExtractInt(self.configLines[21]))
-            if self.configLines[23]<>"": self.MainFrame.petacMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[23]))
-            if self.configLines[25]<>"": self.MainFrame.petacMountLowSpeed.Value = str(self.Processes.ExtractFloat(self.configLines[25]))
-            if self.configLines[27]<>"": self.MainFrame.hiSens.Value = bool(self.Processes.ExtractInt(self.configLines[27]))
-            if self.configLines[29]<>"": self.MainFrame.calibrationSize.Value = str(self.Processes.ExtractInt(self.configLines[29]))
-            if self.configLines[31]<>"": self.R = self.Processes.ExtractFloat(self.configLines[31])
-            if self.configLines[32]<>"": self.Q = self.Processes.ExtractFloat(self.configLines[32])
-            if self.configLines[34]<>"": self.k1 = self.Processes.ExtractFloat(self.configLines[34])
-            if self.configLines[35]<>"": self.k2 = self.Processes.ExtractFloat(self.configLines[35])
+            if self.configLines[9]<>"": self.MainFrame.camportcombo.Value = strip(self.configLines[9])
+            if self.configLines[11]<>"": self.MainFrame.invertCorrection.Value = bool(self.Processes.ExtractInt(self.configLines[11]))
+            if self.configLines[13]<>"": self.MainFrame.arMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[13]))
+            if self.configLines[15]<>"": self.MainFrame.decMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[15]))
+            if self.configLines[17]<>"": self.MainFrame.guideInterval.Value = str(self.Processes.ExtractInt(self.configLines[17]))
+            if self.configLines[19]<>"": self.MainFrame.maxDithering.Value = str(self.Processes.ExtractInt(self.configLines[19]))
+            if self.configLines[19]<>"": self.MainFrame.petacMaxDithering.Value = str(self.Processes.ExtractInt(self.configLines[19]))
+            if self.configLines[21]<>"": self.MainFrame.dithStep.Value = str(self.Processes.ExtractInt(self.configLines[21]))
+            if self.configLines[21]<>"": self.MainFrame.petacDithStep.Value = str(self.Processes.ExtractInt(self.configLines[21]))
+            if self.configLines[23]<>"": self.MainFrame.dithInterval.Value = str(self.Processes.ExtractInt(self.configLines[23]))
+            if self.configLines[25]<>"": self.MainFrame.petacMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[25]))
+            if self.configLines[27]<>"": self.MainFrame.petacMountLowSpeed.Value = str(self.Processes.ExtractFloat(self.configLines[27]))
+            if self.configLines[29]<>"": self.MainFrame.hiSens.Value = bool(self.Processes.ExtractInt(self.configLines[29]))
+            if self.configLines[31]<>"": self.MainFrame.calibrationSize.Value = str(self.Processes.ExtractInt(self.configLines[31]))
+            if self.configLines[33]<>"": self.R = self.Processes.ExtractFloat(self.configLines[33])
+            if self.configLines[34]<>"": self.Q = self.Processes.ExtractFloat(self.configLines[34])
+            if self.configLines[36]<>"": self.k1 = self.Processes.ExtractFloat(self.configLines[36])
+            if self.configLines[37]<>"": self.k2 = self.Processes.ExtractFloat(self.configLines[37])
         except:
             pass
             
     def ValuesToConfig(self):
         self.configLines[5] = str(self.MainFrame.languagecombo.Value)
         self.configLines[7] = str(self.MainFrame.mountportcombo.Value)
-        self.configLines[9] = str(self.Processes.ExtractInt(str(int(self.MainFrame.invertCorrection.Value))))    
-        self.configLines[11] = str(self.Processes.ExtractInt(self.MainFrame.arMinCorr.Value))
-        self.configLines[13] = str(self.Processes.ExtractInt(self.MainFrame.decMinCorr.Value))
-        self.configLines[15] = str(self.Processes.ExtractInt(self.MainFrame.guideInterval.Value))
-        self.configLines[17] = str(self.Processes.ExtractInt(self.MainFrame.maxDithering.Value))
-        self.configLines[19] = str(self.Processes.ExtractInt(self.MainFrame.dithStep.Value))
-        self.configLines[21] = str(self.Processes.ExtractInt(self.MainFrame.dithInterval.Value))
-        self.configLines[23] = str(self.Processes.ExtractInt(self.MainFrame.petacMinCorr.Value))
-        self.configLines[25] = str(self.Processes.ExtractFloat(self.MainFrame.petacMountLowSpeed.Value))
-        self.configLines[27] = str(self.Processes.ExtractInt(str(int(self.MainFrame.hiSens.Value))))
-        self.configLines[29] = str(self.Processes.ExtractInt(self.MainFrame.calibrationSize.Value))
-        self.configLines[31] = str(self.R)
-        self.configLines[32] = str(self.Q)
-        self.configLines[34] = str(self.k1)
-        self.configLines[35] = str(self.k2)
+        self.configLines[9] = str(self.MainFrame.camportcombo.Value)
+        self.configLines[11] = str(self.Processes.ExtractInt(str(int(self.MainFrame.invertCorrection.Value))))    
+        self.configLines[13] = str(self.Processes.ExtractInt(self.MainFrame.arMinCorr.Value))
+        self.configLines[15] = str(self.Processes.ExtractInt(self.MainFrame.decMinCorr.Value))
+        self.configLines[17] = str(self.Processes.ExtractInt(self.MainFrame.guideInterval.Value))
+        self.configLines[19] = str(self.Processes.ExtractInt(self.MainFrame.maxDithering.Value))
+        self.configLines[21] = str(self.Processes.ExtractInt(self.MainFrame.dithStep.Value))
+        self.configLines[23] = str(self.Processes.ExtractInt(self.MainFrame.dithInterval.Value))
+        self.configLines[25] = str(self.Processes.ExtractInt(self.MainFrame.petacMinCorr.Value))
+        self.configLines[27] = str(self.Processes.ExtractFloat(self.MainFrame.petacMountLowSpeed.Value))
+        self.configLines[29] = str(self.Processes.ExtractInt(str(int(self.MainFrame.hiSens.Value))))
+        self.configLines[31] = str(self.Processes.ExtractInt(self.MainFrame.calibrationSize.Value))
+        self.configLines[33] = str(self.R)
+        self.configLines[34] = str(self.Q)
+        self.configLines[36] = str(self.k1)
+        self.configLines[37] = str(self.k2)
         self.Configuration.ConfigLinesUpdate(self.configLines)
     
     def LoadTemp(self):
@@ -404,6 +416,8 @@ class Controller(object):
         self.MainFrame.focal.Value = "0"
         self.angolo = 0.0
         self.imagesPath = ""
+        self.collimatorSize = "0"
+        self.crosshairColorCode = "0"
         try:
             self.MainFrame.arGuideValue.Value = str(self.Processes.ExtractFloat(tempLines[0]))
             self.MainFrame.petacArGuideValue.Value = str(self.Processes.ExtractFloat(tempLines[0]))
@@ -419,6 +433,8 @@ class Controller(object):
             self.MainFrame.focal.Value = str(self.Processes.ExtractInt(tempLines[7]))
             self.angolo = self.Processes.ExtractFloat(tempLines[8])
             self.imagesPath = str(tempLines[9])
+            self.collimatorSize = self.Processes.ExtractInt(tempLines[10])
+            self.crosshairColorCode = self.Processes.ExtractInt(tempLines[11])
         except:
             pass
 
@@ -434,6 +450,8 @@ class Controller(object):
         tempLines.append(str(self.Processes.ExtractInt(self.MainFrame.focal.Value)))
         tempLines.append(str(self.angolo))
         tempLines.append(str(self.imagesPath))
+        tempLines.append(str(self.collimatorSize))
+        tempLines.append(str(self.crosshairColorCode))
         self.Configuration.SaveTempFile(tempLines)
         
 #---- Status
@@ -563,6 +581,7 @@ class Controller(object):
             self.starTracking = True
             self.ditherCount = self.Processes.CountFiles(self.imagesPath)
             self.guideIntervalSec = float(self.MainFrame.guideInterval.Value)
+            self.Processes.SetCamLE(True, self.camControlMode)
             self.Processes.SendMountCommand("0", -1, self.controlMode) #set speed to "min speed" (min)
             self.Processes.GuideRoutineStart(self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value,
                                              float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value), self.guideIntervalSec, self.k1, self.k2, self.controlMode)
@@ -790,6 +809,16 @@ class Controller(object):
                 self.MainFrame.mountRightPic1.Show(True)
                 self.MainFrame.mountStopPic1.Show(False)
                 self.Processes.SendMountCommand("e", -1, self.controlMode, self.MainFrame.invertAr.Value)
+            elif keycode == wx.WXK_PAGEDOWN:
+                self.collimatorSize -= 1
+                self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
+            elif keycode == wx.WXK_PAGEUP:
+                self.collimatorSize += 1  
+                self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)  
+            elif keycode == wx.WXK_SPACE:
+                self.crosshairColorCode += 1
+                if self.crosshairColorCode > 7: self.crosshairColorCode = 0
+                print self.crosshairColorCode
             else:
                 self.lastMountCommand = "quit"
 
@@ -832,7 +861,7 @@ class Controller(object):
             xs<self.vampirePosX+self.vampireSizeX-self.CIRCLE_DIAMETER and ys<self.vampirePosY+self.vampireSizeY-self.CIRCLE_DIAMETER and
             self.hideVampire):
             self.crosshairXs, self.crosshairYs= xs, ys
-            self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs)
+            self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
 
     def MouseMovingOnVampire(self,evt):
         xs, ys = wx.GetMousePosition()
@@ -1049,6 +1078,34 @@ class Controller(object):
                     dial.ShowModal()
                     self.MainFrame.mountportcombo.Value = "none"              
             
+    def CamPortSelect(self,evt):
+        if self.MainFrame.camportcombo.Value == "none":
+            self.camControlMode = "none"
+
+        elif self.MainFrame.camportcombo.Value == "audio":
+            try:
+                self.Processes.InitAudio()
+                self.camControlMode = "audio"
+            except:
+                print "problem with audio configuration"
+                self.MainFrame.camportcombo.Value = "none"
+        
+        elif self.MainFrame.camportcombo.Value[0:6] == "serial":
+            try:
+                self.Processes.CloseSerial()
+                self.Processes.InitSerial(self.MainFrame.camportcombo.Value[6:])
+                self.camControlMode = "serial"
+            except:
+                try:
+                    stringa = "/dev/ttyUSB"+strip(str(self.MainFrame.camportcombo.Value[6:]))
+                    self.Processes.InitSerial(stringa)
+                    self.camControlMode = "serial"
+                except:
+                    dial=wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[17], 'Info', wx.ICON_ERROR | wx.OK)
+                    dial.ShowModal()
+                    self.MainFrame.camportcombo.Value = "none"              
+
+    
     def SetMountSpeed(self,evt):
         self.Processes.SendMountCommand(str(evt.GetInt()), -1, self.controlMode)
         
@@ -1181,6 +1238,17 @@ class Controller(object):
         except:
             focal=0
         self.MainFrame.field.SetValue(self.Processes.FieldUpdate(width,height,focal))
+        
+    def ColorFromCode(self, code):
+        if code == 0: color = "#000000"
+        if code == 1: color = "#FF0000"
+        if code == 2: color = "#00FF00"
+        if code == 3: color = "#0000FF"
+        if code == 4: color = "#FFAAAA"
+        if code == 5: color = "#AAFFAA"
+        if code == 6: color = "#AAAAFF"
+        if code == 7: color = "#FFFFFF"
+        return color
 
     def FwhmStart(self,evt):
         if self.MainFrame.fwhmCalc.Value:
@@ -1201,7 +1269,7 @@ class Controller(object):
             self.HideVampire()
             self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
             self.crosshairXs,self.crosshairYs = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, self.vampireSizeX//2, self.vampireSizeY//2)
-            self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs)
+            self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
         else:
             self.SetSmallWindow()
 
@@ -1213,7 +1281,7 @@ class Controller(object):
             self.HideVampire()
             self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
             self.crosshairXs,self.crosshairYs = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, self.vampireSizeX//2, self.vampireSizeY//2)
-            self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs)
+            self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
 
 #---- controls - about frame
     def OnNameClick(self, event):
@@ -1251,7 +1319,7 @@ class Controller(object):
             floatCorrectionElapsedTime = self.timeFromClick.Time()
             correctionElapsedTime = floatCorrectionElapsedTime//1000
             #action depending on status
-            if self.starTracking:
+            if self.starTracking and self.status != "guiding":
                 self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 10, False, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
 
             if self.status == "fwhm_calc":
@@ -1274,19 +1342,20 @@ class Controller(object):
                     print self.arErrList[-1]
 
             elif self.status == "guiding":
-                guideCenterXdith, guideCenterYdith = self.Processes.DitheringAdd(self.guideCenterX, self.guideCenterY)
-                deltaAR, deltaDEC = self.Processes.CoordConvert(self.actualX - guideCenterXdith, self.actualY - guideCenterYdith, self.angolo)
-                deltaAR, deltaDEC = self.Processes.KalmanFilter(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), self.R, self.Q)
-                
+                if (self.camControlMode == "none") or ((self.timeFromLastGuide.Time()//1000 > self.guideIntervalSec) and (self.guideIntervalSec > 0) and (self.camControlMode != "none")):
+                    self.Processes.SetCamLE(False, self.camControlMode)
+                    self.actualX, self.actualY, self.FWHM = self.Processes.StarTrack(self.actualX, self.actualY, 10, False, self.starFilter, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
+                    self.Processes.SetCamLE(True, self.camControlMode)
+                    guideCenterXdith, guideCenterYdith = self.Processes.DitheringAdd(self.guideCenterX, self.guideCenterY)
+                    deltaAR, deltaDEC = self.Processes.CoordConvert(self.actualX - guideCenterXdith, self.actualY - guideCenterYdith, self.angolo)
+                    deltaAR, deltaDEC = self.Processes.KalmanFilter(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), self.R, self.Q)
+                #time to guide
                 if (self.timeFromLastGuide.Time()//1000 > self.guideIntervalSec) and (self.guideIntervalSec > 0):
                     if (self.dithInterval != 0):
                         if (self.Processes.CountFiles(self.imagesPath) >= (self.ditherCount + self.dithInterval)):
                             self.ditherCount = self.Processes.CountFiles(self.imagesPath)
                             self.Processes.DitheringUpdate() 
                     thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC, float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value)))
-
-                    
-                          
                     #--- guiding statS
                     if self.meanDECdrift == 0 and self.meanARdrift == 0:
                         self.meanARdrift = deltaAR*deltaAR
@@ -1359,7 +1428,7 @@ class Controller(object):
             #draw crosshair
             if self.MainFrame.crosshair.GetValue():
                 try:
-                    self.dcScreen.SetPen(wx.Pen("#0000FF",1))
+                    self.dcScreen.SetPen(wx.Pen(self.ColorFromCode(self.crosshairColorCode),1))
                     self.dcScreen.DrawLineList(self.crosshairList)
                 except:
                     pass
