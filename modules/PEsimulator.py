@@ -6,7 +6,7 @@
 ###
 ### This file is part of PEsimulator.
 ###
-###    Copyright (C) 2011 Andrea Console  <andreaconsole@gmail.com>
+###    Copyright (C) 2011-2013 Andrea Console  <andreaconsole@gmail.com>
 ###
 ###    This program is free software: you can redistribute it and/or modify
 ###    it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ class Panel1(wx.Panel):
         try:
             # pick an image file you have in the working folder
             # you can load .jpg  .png  .bmp  or .gif files
-            image_file = '../images/star.jpg'
+            image_file = '../images/skysimulator.jpg'
             #bmp1 = wx.Image(image_file, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
             # image's upper left corner anchors at panel coordinates (0, 0)
             self.im = Image.open(image_file)
@@ -82,11 +82,13 @@ class Controls(object):
         self.DECdrift = 0.0
         self.ARint = 120 *1000/self.drawSpeed
         self.DECint = 120 *1000/self.drawSpeed
-        self.ARtrack = 0.0
-        self.DECtrack = 0.0
-        self.angolo =   0    *(-3.1415/180)#unit = degree
-        self.ARspeed = 1      /10.0 #unit = pixel/sec
-        self.DECspeed = 1     /10.0 #unit = pixel/sec
+        self.ARtrack = -200.0
+        self.DECtrack = -200.0
+        self.angolo =   0    *(3.1415/180)#unit = degree
+        self.speed0 = 1      /10.0 #unit = pixel/sec
+        self.speed1 = 8     /10.0 #unit = pixel/sec
+        self.speed2 = 16     /10.0 #unit = pixel/sec
+        self.speed = self.speed0
         
         title = str(self.angolo*(-180.0/3.1415))+ " deg; AR:"+str( self.ARdrift)+ " in "+str(round(self.drawSpeed*self.ARint/1000.0)) + "; DEC:" + str(self.DECdrift) + " in " + str(round(self.drawSpeed*self.DECint/1000.0))
         self.frame1.SetTitle(title)
@@ -110,7 +112,7 @@ class Controls(object):
                
         self.ARtrack += (self.ARdrift * cos(6.28*self.ARcounter/self.ARint)*6.28/self.ARint)
         self.DECtrack += (self.DECdrift * cos(6.28*self.DECcounter/self.DECint)*6.28/self.DECint)
-        #print self.DECtrack, self.DECspeed
+        #print self.DECtrack, self.speed
         
         x = -(self.ARtrack * cos(self.angolo) - self.DECtrack * sin(self.angolo))
         y = -(self.ARtrack * sin(self.angolo) + self.DECtrack * cos(self.angolo))
@@ -127,12 +129,13 @@ class Controls(object):
         
         
     def ControlClock(self, evt):              
-        if (os.path.exists('W')): self.ARtrack -= self.ARspeed
-        if (os.path.exists('E')): self.ARtrack += self.ARspeed
-        if (os.path.exists('N')): self.DECtrack += self.DECspeed
-        if (os.path.exists('S')): self.DECtrack -= self.DECspeed
-        
-        
+        if (os.path.exists('W')): self.ARtrack -= self.speed
+        if (os.path.exists('E')): self.ARtrack += self.speed
+        if (os.path.exists('N')): self.DECtrack += self.speed
+        if (os.path.exists('S')): self.DECtrack -= self.speed
+        if (os.path.exists('s0')): self.speed = self.speed0
+        if (os.path.exists('s1')): self.speed = self.speed1
+        if (os.path.exists('s2')): self.speed = self.speed2
 
 app = wx.App()
 controls = Controls(app)

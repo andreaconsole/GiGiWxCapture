@@ -36,8 +36,8 @@ audio
 0.6
 0.0
 ----R and Q for Kalman filter [??]----
-0.5
-2.0
+0.0
+0.0
 
 
 

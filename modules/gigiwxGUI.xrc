@@ -235,15 +235,15 @@
           </object>
           <object class="wxTextCtrl" name="calibrationsize">
             <pos>5,30</pos>
-            <size>50,20</size>
+            <size>45,20</size>
             <value>150</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="calibrationsizet">
-            <pos>60,37</pos>
+            <pos>55,37</pos>
             <size>110,15</size>
-            <label>calibr radius px</label>
+            <label>calibr radius [px]</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="arguidevalue">
@@ -262,22 +262,29 @@
           </object>
           <object class="wxCheckBox" name="invertar">
             <pos>5,80</pos>
-            <size>60,25</size>
+            <size>70,20</size>
             <label>Inv. AR</label>
             <fg>#ADD8E6</fg>
             <bg>#A52A2A</bg>
           </object>
           <object class="wxCheckBox" name="invertdec">
-            <pos>85,80</pos>
-            <size>70,25</size>
+            <pos>75,80</pos>
+            <size>75,20</size>
             <label>Inv. DEC</label>
             <fg>#ADD8E6</fg>
             <bg>#A52A2A</bg>
           </object>
           <object class="wxCheckBox" name="hisens">
             <pos>5,100</pos>
-            <size>150,25</size>
-            <label>Hi sensibility</label>
+            <size>70,20</size>
+            <label>Hi sens.</label>
+            <fg>#ADD8E6</fg>
+            <bg>#A52A2A</bg>
+          </object>
+          <object class="wxCheckBox" name="justlock">
+            <pos>75,100</pos>
+            <size>75,20</size>
+            <label>justlock</label>
             <fg>#ADD8E6</fg>
             <bg>#A52A2A</bg>
           </object>
@@ -288,41 +295,41 @@
           </object>
           <object class="wxTextCtrl" name="armincorr">
             <pos>5,130</pos>
-            <size>50,20</size>
+            <size>45,20</size>
             <value>200</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="armincorrt">
-            <pos>60,135</pos>
+            <pos>55,135</pos>
             <size>110,15</size>
-            <label>min AR corr. ms</label>
+            <label>minARcorr [ms]</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="decmincorr">
             <pos>5,157</pos>
-            <size>50,20</size>
+            <size>45,20</size>
             <value>200</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="decmincorrt">
-            <pos>60,162</pos>
+            <pos>55,162</pos>
             <size>110,15</size>
-            <label>min DEC corr. ms</label>
+            <label>minDECcorr [ms]</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="guideinterval">
             <pos>5,184</pos>
-            <size>50,20</size>
+            <size>45,20</size>
             <value>2000</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="guideintervalt">
-            <pos>60,189</pos>
+            <pos>55,189</pos>
             <size>110,15</size>
-            <label>guide interval sec</label>
+            <label>guide int. [s]</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxStaticLine" name="ditheringline">
@@ -337,41 +344,41 @@
           </object>
           <object class="wxTextCtrl" name="maxdithering">
             <pos>5,244</pos>
-            <size>50,20</size>
+            <size>45,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="maxditheringt">
-            <pos>60,249</pos>
+            <pos>55,249</pos>
             <size>110,15</size>
-            <label>max dith. px</label>
+            <label>max dith. [px]</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="dithstep">
             <pos>5,271</pos>
-            <size>50,20</size>
+            <size>45,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="dithstept">
-            <pos>60,276</pos>
+            <pos>55,276</pos>
             <size>110,15</size>
-            <label>dith. step, px</label>
+            <label>dith. step [px]</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxTextCtrl" name="dithinterval">
             <pos>5,298</pos>
-            <size>50,20</size>
+            <size>45,20</size>
             <value>0</value>
             <bg>#A56363</bg>
             <style>wxSIMPLE_BORDER</style>
           </object>
           <object class="wxStaticText" name="dithintervalt">
-            <pos>60,304</pos>
+            <pos>55,304</pos>
             <size>110,15</size>
-            <label>frames btwn dith</label>
+            <label>dith int</label>
             <fg>#ADD8E6</fg>
           </object>
           <object class="wxToggleButton" name="guideonoff">

@@ -6,7 +6,7 @@
 ###
 ### This file is part of GiGiWxCapture.
 ###
-###    Copyright (C) 2011 Andrea Console  <andreaconsole@gmail.com>
+###    Copyright (C) 2011-2013 Andrea Console  <andreaconsole@gmail.com>
 ###
 ###    This program is free software: you can redistribute it and/or modify
 ###    it under the terms of the GNU General Public License as published by
