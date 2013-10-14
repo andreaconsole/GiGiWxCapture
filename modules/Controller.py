@@ -195,14 +195,13 @@ class Controller(object):
         #----------Vampire Frame
         self.MainFrame.VampireFrame.vampirePanel = xrc.XRCCTRL(self.MainFrame.VampireFrame, "vampirepanel")
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_MOTION, self.MouseMovingOnVampire)
+        self.MainFrame.VampireFrame.vampireLabel = xrc.XRCCTRL(self.MainFrame.VampireFrame, "vampirelabel")
         self.MainFrame.VampireFrame.Bind(wx.EVT_SIZE, self.SizeObserver)
         self.MainFrame.VampireFrame.Bind(wx.EVT_MOVE, self.SizeObserver)
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_RIGHT_UP, self.RightClickOnVampire)
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_LEFT_UP, self.LeftClickOnVampire)
-        self.MainFrame.VampireFrame.Bind(wx.EVT_BUTTON,self.FillWindowAuto,id=xrc.XRCID("windowplaceauto"))
-        self.MainFrame.VampireFrame.Bind(wx.EVT_BUTTON,self.FillWindowManual,id=xrc.XRCID("windowplacemanual"))
-        self.MainFrame.VampireFrame.windowplaceauto = xrc.XRCCTRL(self.MainFrame.VampireFrame, "windowplaceauto")
-        self.MainFrame.VampireFrame.windowplacemanual = xrc.XRCCTRL(self.MainFrame.VampireFrame, "windowplacemanual")
+        self.MainFrame.VampireFrame.Bind(wx.EVT_BUTTON,self.WindowConfirm,id=xrc.XRCID("windowconfirm"))
+        self.MainFrame.VampireFrame.windowconfirm = xrc.XRCCTRL(self.MainFrame.VampireFrame, "windowconfirm")
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_KEY_DOWN, self.KeyDownVampire)
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_KEY_UP, self.KeyUpVampire)
         self.MainFrame.VampireFrame.Bind(wx.EVT_KEY_DOWN, self.KeyDownVampire)
@@ -289,6 +288,7 @@ class Controller(object):
         self.MainFrame.AboutFrame.description.Label = self.testo[24]
         self.MainFrame.AboutFrame.helpText.Value = self.testo[38].replace("//", "\n")
         self.MainFrame.AboutFrame.description.Wrap(280)
+        self.MainFrame.VampireFrame.vampireLabel.Label = self.testo[28]
         self.MountPortSelect(None)
         self.a = self.b = 1
         self.correzione = 0
@@ -454,7 +454,7 @@ class Controller(object):
         self.Configuration.SaveTempFile(tempLines)
         
 #---- Status
-    def SetStatus(self,status):
+    def SetStatus(self, status):
         print status
         self.status = status
         if status == "camera_orientation_begin":
@@ -642,13 +642,16 @@ class Controller(object):
             self.calcClock.Stop()
             self.starTracking = True
             self.movementCounter = 0
-
+            
+        elif self.status == "waiting_for_vampire_victim":
+            self.ShowVampire(None)
         #----
         elif self.status == "idle":
             #guide idle
             self.Processes.SendMountCommand("q", self.controlMode)
             self.MainFrame.guideSpeed.SetSelection(1)
             self.MainFrame.guideSpeed1.SetSelection(1)
+            self.Processes.SendMountCommand("1", self.controlMode) #set speed to "min speed" (min)
             self.MainFrame.guideCalibrationOnOff.Value = False
             self.MainFrame.guideOnOff.Value = False
             self.MainFrame.petacCalOnOff.Value = False
@@ -702,7 +705,7 @@ class Controller(object):
             ret = dial.ShowModal()
             if ret == wx.ID_YES:
                 self.Configuration.SaveConfiguration()
-        self.SetStatus("idle")
+        self.SetStatus("waiting_for_vampire_victim")
         self.filelog.close()
         self.timerShowHideVampire.Destroy()
         self.drawClock.Destroy()
@@ -723,10 +726,9 @@ class Controller(object):
     def ShowVampire(self,evt):
         self.hideVampire = False
         self.MainFrame.VampireFrame.Show()
-        self.MainFrame.VampireFrame.windowplaceauto.Enable(True)
-        self.MainFrame.VampireFrame.windowplacemanual.Enable(True)
-        self.MainFrame.VampireFrame.windowplaceauto.Show()
-        self.MainFrame.VampireFrame.windowplacemanual.Show()
+        self.MainFrame.VampireFrame.Maximize()
+        self.MainFrame.VampireFrame.windowconfirm.Enable(True)
+        self.MainFrame.VampireFrame.windowconfirm.Show()
         self.timerShowHideVampire.Start(50)
         self.MainFrame.VampireFrame.vampirePanel.SetFocusIgnoringChildren()
 
@@ -749,10 +751,8 @@ class Controller(object):
             else:
                 self.alphaAmount = 1 #transparent final value
                 self.MainFrame.VampireFrame.SetTransparent(self.alphaAmount)
-                self.MainFrame.VampireFrame.windowplaceauto.Enable(False)
-                self.MainFrame.VampireFrame.windowplacemanual.Enable(False)
-                self.MainFrame.VampireFrame.windowplaceauto.Hide()
-                self.MainFrame.VampireFrame.windowplacemanual.Hide()
+                self.MainFrame.VampireFrame.windowconfirm.Enable(False)
+                self.MainFrame.VampireFrame.windowconfirm.Hide()
                 self.timerShowHideVampire.Stop()
                 self.MainFrame.VampireFrame.vampirePanel.SetFocusIgnoringChildren()
         else:
@@ -855,7 +855,8 @@ class Controller(object):
             self.hideVampire): #if it's not too close to borders
             self.actualX, self.actualY =  xs, ys
             self.timeFromClick.Start() #reset stopwatch
-            if self.status == "camera_orientation_begin": self.SetStatus("camera_orientation_first_star")
+            if self.status == "waiting_for_vampire_victim": self.SetStatus("waiting_for_vampire_victim")
+            elif self.status == "camera_orientation_begin": self.SetStatus("camera_orientation_first_star")
             elif self.status == "camera_orientation_first_star_acq": self.SetStatus("camera_orientation_second_star_acq")
             elif self.status == "alignment_star_waiting": self.SetStatus("alignment_star_tracking")
             elif self.status == "alignment_calc_ready": self.SetStatus("alignment_star_tracking")
@@ -1289,15 +1290,12 @@ class Controller(object):
         else:
             self.SetSmallWindow()
 
-    def FillWindowManual(self,evt):
-        dial = wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[28], 'Question',
-               wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
-        ret = dial.ShowModal()
-        if ret == wx.ID_YES:
-            self.HideVampire()
-            self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
-            self.crosshairXs,self.crosshairYs = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, self.vampireSizeX//2, self.vampireSizeY//2)
-            self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
+    def WindowConfirm(self,evt):
+        self.HideVampire()
+        self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
+        self.crosshairXs,self.crosshairYs = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, self.vampireSizeX//2, self.vampireSizeY//2)
+        self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
+        self.SetStatus("idle")
 
 #---- controls - about frame
     def OnNameClick(self, event):

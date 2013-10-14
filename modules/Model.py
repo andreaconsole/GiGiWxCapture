@@ -341,7 +341,7 @@ class Processes(object):
         if iterations == 0: #when iter = 0, startrack bufferize and add image data so to improve signal to noise ratio
             iterations = 1
             resetBuffer = False;
-            print "accumulating"
+            print "accumulating..."
             
         def pixelRedVal(x,y): #returns red value of the pixel x y (displaced by dispX, dispY)
             if 3*(x+self.screenSizeX*(y)) < len(self.pixelBuffer):
@@ -409,8 +409,7 @@ class Processes(object):
             print "star not found " + str(sum(pixelValues))
             self.multiplier = 1
         self.memory.SelectObject(wx.NullBitmap) #erase memory copy of screen image
-        #if resetBuffer: 
-        self.pixelBuffer = numpy.zeros((self.screenSizeX*self.screenSizeY*3), dtype=numpy.single)
+        if resetBuffer: self.pixelBuffer = numpy.zeros((self.screenSizeX*self.screenSizeY*3), dtype=numpy.single)
         actualX = max(actualX, winPosX+MIN_DISTANCE)
         actualX = min(actualX, winPosX+winSizeX-MIN_DISTANCE)
         actualY = max(actualY, winPosY+MIN_DISTANCE)
@@ -455,7 +454,7 @@ class Processes(object):
     def CalcCorrection (self, angolo, xo, yo, xf, yf, window, warningtext ):
         correzione = abs(round(self.mediaPesata * 86164 * self.fattCorr / (2 * pi)))
         #calculate direction of correction
-        verso = cmp((yf * cos(angolo) - xf * sin(angolo)) - (yo * cos(angolo) - xo * sin(angolo)),0)
+        verso = cmp(0,(yf * cos(angolo) - xf * sin(angolo)) - (yo * cos(angolo) - xo * sin(angolo))) #invert correction
         # verifies if error has become bigger
         if (correzione > self.ultimaCorrezione) and (verso == self.ultimoVerso) and (self.ultimaCorrezione != 0):
             dial=wx.MessageDialog(window, warningtext, 'Warning', wx.OK | wx.ICON_EXCLAMATION)
