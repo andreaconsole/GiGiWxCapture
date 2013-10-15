@@ -24,6 +24,8 @@
 ###    developed by you, I would appreciate if you mentioned me in your code.
 ###
 ################################################################################
+import time
+Sleep = time.sleep
 
 import wx
 from wx import xrc
@@ -236,6 +238,7 @@ class Controller(object):
         self.MainFrame.AboutFrame.Bind(wx.EVT_CLOSE, self.OnCloseAboutWindow)
         self.MainFrame.GraphFrame.Bind(wx.EVT_CLOSE, self.OnCloseGraphWindow)
         #----------constS
+        self.MIN_PIX_STEP = 20 #minimum difference between pixel to find window border
         self.CIRCLE_DIAMETER = 20 #px: diameter of the drawn circle
         self.WINDOWBAR_H = 20 #px: height of the window bar 
         self.MIN_CORR_TIME = 5 #secs: time for vibrations dumping
@@ -262,7 +265,7 @@ class Controller(object):
         self.MainFrame.Bind(wx.EVT_TIMER, self.PicSaveClock, self.picSaveClock)
 
         self.calcClock = wx.Timer(self.MainFrame)
-        self.calcClock.Start(self.STAR_TRACK_INTERVAL)
+        #self.calcClock.Start(self.STAR_TRACK_INTERVAL)
         self.MainFrame.Bind(wx.EVT_TIMER, self.CalcClock, self.calcClock)
 
         self.zoomClock=wx.Timer(self.MainFrame)
@@ -271,6 +274,7 @@ class Controller(object):
 
         self.xs, self.ys=-50, -50
         self.genericCounter = 0
+        self.starTracking = False
         self.crosshairXs, self.crosshairYs=-50, -50
         self.actualX = 320
         self.actualY = 240
@@ -301,7 +305,7 @@ class Controller(object):
         self.arCorrList = [(0.0,0.0)]
         self.decCorrList = [(0.0,0.0)]
         self.fwhmList = [(0.0,0.0)]
-        self.SetStatus("idle")
+        self.SetStatus("waiting_for_vampire_victim")
         #sys.stdout = self.MainFrame.AboutFrame.helpText
 
 #---- config&load
@@ -645,6 +649,14 @@ class Controller(object):
             
         elif self.status == "waiting_for_vampire_victim":
             self.ShowVampire(None)
+            self.MainFrame.VampireFrame.Maximize()
+        
+        elif self.status == "waiting_for_vampire_victim_confirm":
+            xmin, ymin, xmax, ymax = self.Processes.EnlargeToWindow(self.actualX, self.actualY, self.MIN_PIX_STEP, 100)
+            self.MainFrame.VampireFrame.SetPosition((xmin, ymin))
+            self.MainFrame.VampireFrame.SetSize((xmax-xmin, ymax-ymin-self.WINDOWBAR_H))
+            self.MainFrame.VampireFrame.Show()
+            self.MainFrame.VampireFrame.Maximize(0)
         #----
         elif self.status == "idle":
             #guide idle
@@ -705,7 +717,7 @@ class Controller(object):
             ret = dial.ShowModal()
             if ret == wx.ID_YES:
                 self.Configuration.SaveConfiguration()
-        self.SetStatus("waiting_for_vampire_victim")
+        self.SetStatus("idle")
         self.filelog.close()
         self.timerShowHideVampire.Destroy()
         self.drawClock.Destroy()
@@ -726,14 +738,14 @@ class Controller(object):
     def ShowVampire(self,evt):
         self.hideVampire = False
         self.MainFrame.VampireFrame.Show()
-        self.MainFrame.VampireFrame.Maximize()
         self.MainFrame.VampireFrame.windowconfirm.Enable(True)
         self.MainFrame.VampireFrame.windowconfirm.Show()
         self.timerShowHideVampire.Start(50)
         self.MainFrame.VampireFrame.vampirePanel.SetFocusIgnoringChildren()
 
-    def SetSmallWindow(self):
-        self.MainFrame.VampireFrame.SetSize((400,400))
+    def SetSmallWindow(self, Xpos, Ypos):
+        self.MainFrame.VampireFrame.SetSize((100,100))
+        self.MainFrame.VampireFrame.SetPosition((Xpos-50, Ypos-50))
 
     def SizeObserver(self,evt):
         self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
@@ -848,15 +860,18 @@ class Controller(object):
             self.Processes.SendMountCommand("q", self.controlMode)
 
     def LeftClickOnVampire(self,evt):
+        print "left click"
         xs, ys = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, evt.X, evt.Y)
         self.MainFrame.VampireFrame.SetFocus()
-        if (xs>self.CIRCLE_DIAMETER+self.vampirePosX and ys>self.CIRCLE_DIAMETER+self.vampirePosY and
-            xs<self.vampirePosX+self.vampireSizeX-self.CIRCLE_DIAMETER and ys<self.vampirePosY+self.vampireSizeY-self.CIRCLE_DIAMETER and
-            self.hideVampire): #if it's not too close to borders
+        if self.status == "waiting_for_vampire_victim":
+            self.actualX, self.actualY =  xs, ys
+            self.MainFrame.VampireFrame.Hide()
+            self.calcClock.Start(1000)
+        elif (xs>self.CIRCLE_DIAMETER+self.vampirePosX and ys>self.CIRCLE_DIAMETER+self.vampirePosY and
+            xs<self.vampirePosX+self.vampireSizeX-self.CIRCLE_DIAMETER and ys<self.vampirePosY+self.vampireSizeY-self.CIRCLE_DIAMETER): #if it's not too close to borders
             self.actualX, self.actualY =  xs, ys
             self.timeFromClick.Start() #reset stopwatch
-            if self.status == "waiting_for_vampire_victim": self.SetStatus("waiting_for_vampire_victim")
-            elif self.status == "camera_orientation_begin": self.SetStatus("camera_orientation_first_star")
+            if self.status == "camera_orientation_begin": self.SetStatus("camera_orientation_first_star")
             elif self.status == "camera_orientation_first_star_acq": self.SetStatus("camera_orientation_second_star_acq")
             elif self.status == "alignment_star_waiting": self.SetStatus("alignment_star_tracking")
             elif self.status == "alignment_calc_ready": self.SetStatus("alignment_star_tracking")
@@ -868,6 +883,7 @@ class Controller(object):
             elif self.status == "guide_calibration_waiting": self.SetStatus("guide_calibrating")
 
     def RightClickOnVampire(self,evt):
+        print "right click"
         xs, ys = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, evt.X, evt.Y)
         if (xs>self.CIRCLE_DIAMETER+self.vampirePosX and ys>self.CIRCLE_DIAMETER+self.vampirePosY and
             xs<self.vampirePosX+self.vampireSizeX-self.CIRCLE_DIAMETER and ys<self.vampirePosY+self.vampireSizeY-self.CIRCLE_DIAMETER and
@@ -1276,20 +1292,6 @@ class Controller(object):
             self.SetStatus("idle")
 
 #---- controls - vampire frame
-    def FillWindowAuto(self,evt):
-        MIN_PIX_STEP = 100 #minimum difference between pixel to find window border
-        self.Processes.EnlargeToWindow(self.MainFrame.VampireFrame, self.WINDOWBAR_H, MIN_PIX_STEP)
-        dial = wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[28], 'Question',
-               wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
-        ret = dial.ShowModal()
-        if ret == wx.ID_YES:
-            self.HideVampire()
-            self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
-            self.crosshairXs,self.crosshairYs = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, self.vampireSizeX//2, self.vampireSizeY//2)
-            self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
-        else:
-            self.SetSmallWindow()
-
     def WindowConfirm(self,evt):
         self.HideVampire()
         self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
@@ -1428,7 +1430,11 @@ class Controller(object):
                     self.SetStatus("idle")
                     self.MainFrame.guideInstr.Value = self.testo[22]
                     print "GUIDE VALUES: ", self.MainFrame.arGuideValue.Value, self.MainFrame.decGuideValue.Value, "; invar-dec:", self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, "; angle:", self.angolo*57.3
-
+        else:
+            if self.status == "waiting_for_vampire_victim":
+                self.calcClock.Stop()
+                self.SetStatus("waiting_for_vampire_victim_confirm")
+                
     def PicSaveClock(self,evt):
         picCount = self.Processes.ExtractInt(self.MainFrame.pictureNo.Value)
         picIndex = self.picTotal - picCount + 1

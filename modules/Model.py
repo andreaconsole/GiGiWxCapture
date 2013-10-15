@@ -192,50 +192,88 @@ class Processes(object):
                 self.ser.close()
                 self.ser = None
 
-    def EnlargeToWindow(self, window, TASKBAR_H, MIN_PIX_STEP):
-        x,y = window.GetPosition()
-        sizeX, sizeY = window.GetSize()
-        window.Hide()
+    def EnlargeToWindow(self, x0, y0, MIN_PIX_STEP, MIN_WIDTH):
+        print "searching for borders from (",x0,y0,")"
+        #create a copy of screen image in memory
+        pixelTempBuffer = numpy.zeros((self.screenSizeX*self.screenSizeY*3), dtype=numpy.uint8)
         self.memory.SelectObject(self.bitmap)
         self.memory.Blit(0,0,self.screenSizeX,self.screenSizeY,self.dcScreen,0,0)
+        self.bitmap.CopyToBuffer(pixelTempBuffer, wx.BitmapBufferFormat_RGB) 
+        pixelTempBuffer = pixelTempBuffer.astype(numpy.single)
+        #img=wx.ImageFromBitmap(self.bitmap) #test code
+        #img.SaveFile("test.bmp",1) #test code
+            
+        def pixelRedVal(x,y): #returns red value of the pixel x y (displaced by dispX, dispY)
+            if 3*(x+self.screenSizeX*(y)) < len(pixelTempBuffer):
+                output = pixelTempBuffer[3*(x+self.screenSizeX*(y))]
+            else:
+                output = 0
+            return output
+        
         # check these pixels to see when VampireFrame covers exactly video window,
         # and enlarge VampireFrame if not
         #
         #       ------------------
-        #       |      pix3      |
+        #       |       3        |
         #       |                |
-        #       |pix1        pix2|
+        #       |1              2|
         #       |                |
-        #       |      pix4      |
+        #       |       4        |
         #       ------------------
         #
-        pix1=pix2=pix3=pix4=0
-        centralPix=MIN_PIX_STEP + (self.memory.GetPixel(x,y)[1]+self.memory.GetPixel(x+sizeX,y)[1]+self.memory.GetPixel(x,y+sizeY)[1]+self.memory.GetPixel(x+sizeX,y+sizeY)[1])//4
-        x1=x
-        x2=x+sizeX+10
-        x3=x4=x+sizeX//2
-
-        y1=y2=y+sizeY//2
-        y3=y
-        y4=y+sizeY+TASKBAR_H+30
-        print self.memory.GetPixel(x,y)[1]
-        while (x1>0 and y3>0 and x2<self.screenSizeX and y4<self.screenSizeY) and (pix1<centralPix or pix2<centralPix or
-                                                           pix3<centralPix or pix4<centralPix):
-
-            if pix1 < centralPix: x1-=2
-            if pix2 < centralPix: x2+=2
-            if pix3 < centralPix: y3-=2
-            if pix4 < centralPix: y4+=2
-
-            pix1=(self.memory.GetPixel(x1,y1)[1]+self.memory.GetPixel(x1,y1-1)[1]+self.memory.GetPixel(x1,y1+1)[1])//3
-            pix2=(self.memory.GetPixel(x2,y2)[1]+self.memory.GetPixel(x2,y2-1)[1]+self.memory.GetPixel(x2,y2+1)[1])//3
-            pix3=(self.memory.GetPixel(x3,y3)[1]+self.memory.GetPixel(x3-1,y3)[1]+self.memory.GetPixel(x3+1,y3)[1])//3
-            pix4=(self.memory.GetPixel(x4,y4)[1]+self.memory.GetPixel(x4-1,y4)[1]+self.memory.GetPixel(x4+1,y4)[1])//3
-
-        window.SetPosition((x1, y3))
-        window.SetSize((x2-x1, y4-y3-TASKBAR_H))
-        window.Show()
-        self.memory.SelectObject(wx.NullBitmap)
+        thr = MIN_PIX_STEP + (pixelRedVal(x0-MIN_WIDTH//2, y0+1)+pixelRedVal(x0-MIN_WIDTH//2, y0-1)+
+                              pixelRedVal(x0+MIN_WIDTH//2, y0+1)+pixelRedVal(x0+MIN_WIDTH//2, y0-1))//4
+        print thr
+        #up
+        pix1 = pix2  = 0
+        x1 = x0 - MIN_WIDTH//2
+        x2 = x0 + MIN_WIDTH//2
+        y1 = y0
+        y2 = y0
+        while (y1>0) and (pix1<thr or pix2<thr):# or pix1<>pix2):
+            y1 -= 1
+            y2 -= 1
+            pix1 = pixelRedVal(x1,y1)
+            pix2 = pixelRedVal(x2,y2)
+        ymin = y1
+        #down
+        pix1 = pix2  = 0
+        x1 = x0 - MIN_WIDTH//2
+        x2 = x0 + MIN_WIDTH//2
+        y1 = y0
+        y2 = y0
+        while (y1<self.screenSizeY) and (pix1<thr or pix2<thr):# or pix1<>pix2):
+            y1 += 1
+            y2 += 1
+            pix1 = pixelRedVal(x1,y1)
+            pix2 = pixelRedVal(x2,y2)
+        ymax = y1
+        #left
+        pix1 = pix2  = 0
+        x1 = x0
+        x2 = x0
+        y1 = ymin+MIN_WIDTH//2
+        y2 = ymax-MIN_WIDTH//2
+        while (x1>0) and (pix1<thr or pix2<thr):# or pix1<>pix2):
+            x1 -= 1
+            x2 -= 1
+            pix1 = pixelRedVal(x1,y1)
+            pix2 = pixelRedVal(x2,y2)
+        xmin = x1
+        #right
+        pix1 = pix2  = 0
+        x1 = x0
+        x2 = x0
+        y1 = ymin+MIN_WIDTH//2
+        y2 = ymax-MIN_WIDTH//2
+        while (x1<self.screenSizeX) and (pix1<thr or pix2<thr):# or pix1<>pix2):
+            x1 += 1
+            x2 += 1
+            pix1 = pixelRedVal(x1,y1)
+            pix2 = pixelRedVal(x2,y2)
+        xmax = x1
+        self.memory.SelectObject(wx.NullBitmap) #erase memory copy of screen image 
+        return xmin, ymin, xmax, ymax
 
     def ZoomRefresh(self, ZoomFrame, zoomSizeX, zoomSizeY, xs, ys):
         bitmap=wx.EmptyBitmap(zoomSizeX//2 ,zoomSizeY//2,-1)

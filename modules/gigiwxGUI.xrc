@@ -810,7 +810,7 @@
       <size>4000,4000</size>
       <bg>#401010</bg>
     </object>
-    <size>400,400</size>
+    <size>40,40</size>
     <title>Vampire window</title>
     <style>wxSTAY_ON_TOP|wxCAPTION|wxRESIZE_BORDER|wxFRAME_NO_TASKBAR</style>
   </object>
