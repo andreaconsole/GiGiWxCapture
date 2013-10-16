@@ -1,20 +1,28 @@
 *This Version*
-GiGiWxCapture 2.1
+GiGiWxCapture 3.0
+
+FARE LE TRADUZIONI FRA ESP
+TOGLI LA TEST FASE
 
 *Updates* 
-13/09/2012 -> 2.1 -     Major improvement to autoguide alghorithm
-30/08/2012 -> 2.0 -     code efficiency upgrade, improved algorithm for star position
-                        calculation, image noise filtering added, kalman filter added 
-                        to reduce  seeing effects, big  improvement to autoguide code
-                        (better and  full automatic calibration, autoguide  using  PD 
+20/10/2013 -> 2.1 -     New vampire approach, new star centroid calculation algorithm,
+						major autoguide code revision,  new fwhm algorithm, added fwhm
+						graph,  added auto-sum algorithm for guiding with not modified 
+						webcams, better performances for assisted bigourdan procedure, 
+						whole code revision.
+30/08/2012 -> 2.0 -     Code efficiency upgrade,  improved algorithm for star position
+                        calculation, image noise filtering added,  kalman filter added 
+                        to reduce  seeing effects,  big  improvement to autoguide code
+                        (better and  full automatic calibration,  autoguide  using  PD 
                         control).
-05/10/2011 -> 1.1.0 -   added  PET-AC  function  (sperimental), minor  code  revision, 
+05/10/2011 -> 1.1.0 -   Added  PET-AC  function (experimental), minor  code  revision, 
                         added output logging for remote debugging.
-10/04/2011 -> 1.0.3 -   removed circles, that work bad on windows 
-09/04/2011 -> 1.0.2 -   more  kind  on  resource with windows, cross instead of circle 
-                        during startracking, better video refresh
-27/03/2011 -> 1.0.1 -   auto shutdown for crosshair when changing tab
-17/03/2011 -> 1.0
+10/04/2011 -> 1.0.3 -   Removed circles around selected star, due to a incompatibility
+						with Windows. 
+09/04/2011 -> 1.0.2 -   More  kind  on  resource with Windows, cross instead of circle 
+                        during star-tracking, better video refresh.
+27/03/2011 -> 1.0.1 -   Auto shutdown for crosshair when changing tab.
+17/03/2011 -> 1.0   -	First Version.
 
 
 

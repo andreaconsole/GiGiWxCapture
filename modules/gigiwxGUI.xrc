@@ -795,22 +795,18 @@
   </object>
   <object class="wxFrame" name="vampireFrame">
     <object class="wxPanel" name="vampirepanel">
-      <object class="wxStaticText" name="vampirelabel">
-	      <pos>45,5</pos>
-	      <size>-1,25</size>
-	      <label>FFFFF</label>
-	      <fg>#ADD8E6</fg>
-	      <style>wxALIGN_CENTRE</style>
-      </object>
-      <object class="wxButton" name="windowconfirm">
-        <pos>115,125</pos>
-        <size>150,25</size>
-        <label>OK</label>
-      </object>
       <size>4000,4000</size>
       <bg>#401010</bg>
+      <object class="wxStaticText" name="vampirelabel">
+        <pos>10,10</pos>
+        <label>LABEL</label>
+        <fg>#ADD8E6</fg>
+      </object>
+      <object class="wxButton" name="windowconfirm">
+      	<pos>175,150</pos>
+        <label>OK</label>
+      </object>
     </object>
-    <size>40,40</size>
     <title>Vampire window</title>
     <style>wxSTAY_ON_TOP|wxCAPTION|wxRESIZE_BORDER|wxFRAME_NO_TASKBAR</style>
   </object>

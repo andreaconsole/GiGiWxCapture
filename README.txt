@@ -1,40 +1,38 @@
-﻿Getting Started - Come iniziare...
+﻿ITA
+GiGiWxCapture è scritto per essere intuitivo. Per le attivita' piu' complesse e' sempre presente una finestra di istruzioni passo passo
+contestuali. Sul mio sito troverete comunque alcuni tutorial e suggerimenti per un piu' rapido apprendimento.
+Il software e' disponibile in italiano, inglese, spagnolo e francese, ma e' comunque possibile aggiungere ulteriori traduzioni 
+nella cartella language (copiare il formato da uno dei file gia' esistenti).
 
-ITA
-* avvia GiGiWxCapture (gigiwxcapture-launcher.exe o GiGiWxCapture.py, GiGiWxCapture.pyw su Windows) e il software di gestione del CCD (che deve essere disponibile);
-* premi il pulsante "Select Capture Window": si aprir� una finestra semitrasparente denominata "Vampire Window";
-* posiziona la "Vampire Window" all'interno della finestra del software di gestione del CCD (lo sfondo deve essere nero, quindi con il sensore disconnesso o coperto);
-* premere il pulsante "Automatic" e attendere che il programma individui i bordi della finestra di acquisizione (in alternativa � possibile ridimensionare manualmente la finestra e poi premere "Manual");
-* verificare il corretto posizionamento della "Vampire Window" (ma non � necessario essere pignoli).
+GiGiWxCapture è un software OpenSource distribuito sotto licenza GNU GPL. Cio' significa che il codice e' liberamente disponibile e ne e' 
+garantita piena liberta' di utilizzo, copia, modifica e distribuzione a patto di ridistribuire sempre il codice mantenendo 
+la medesima licenza. 
+Nello spirito dell'OpenSource, e a maggior ragione dato che si tratta del mio primo programma scritto in Python, 
+ogni suggerimento per il suo miglioramento e' gradito.
+
+ESCLUSIONE DI RESPONSABILITÀ
+Questo programma è distribuito "cosi' com'e'", senza garanzie di alcun tipo, esplicita o implicita, comprese, ma non limitatamente a,
+le garanzie implicite di commerciabilita' e idoneita' ad un particolare scopo. L'intero rischio per quanto riguarda la qualita' e le 
+prestazioni del programma è a carico dell'utilizzatore. Se il programma dovesse risultare difettoso, l'utilizzatore si assume il costo
+di tutti i servizi necessari alla riparazione o correzione. Vedere la GNU General Public License per ulteriori dettagli.
 ---
-vedi andreaconsole.altervista.org per ulteriori informazioni
+vedi andreaconsole.altervista.org per ulteriori informazioni (sito tradotto con Google Translate)
 
 
 ENG
-* start GiGiWxCapture (gigiwxcapture-launcher.exe or GiGiWxCapture.py, GiGiWxCapture.pyw on Windows) and start the software for CCD management (which should be available);
-* press the "Select Capture Window" button. This will open a translucent window called "Vampire Window";
-* position the "Vampire Window" in the CCD management software window (the background should be black, then with the sensor disconnected or covered);
-* press the "Automatic" button and wait for the program identifies the edges of the acquisition window (or you can manually resize the window and then press "Manual");
-* verify the correct positioning of the "Vampire Window" (you do not need to be picky).
+GiGiWxCapture is written to be intuitive. For most complex activities, you can always count on a step-by-step contestual 
+instructions window. However, on my website you will find some tutorials and hints for a quicker learning.
+The software is available in Italian, English, Spanish and French, but you can add your own language file in the "language" folder
+(please use the format of one of the existing language files).
+
+GiGiWxCapture is an OpenSource software, distributed under GNU GPL licence. This means that the code is freely available and that full
+freedom of use, copy, modify, distribution is granted, as long as you redistribute it under the same conditions.
+Like every OpenSource software, and even more since it's my first python program, every advice is encouraged and welcome.
+
+DISCLAIMER
+This program is distributed "as is" without warranty of any kind, either expressed or implied, including, but not limited to, 
+the implied warranties of merchantability and fitness for a particular purpose. the entire risk as to the quality and performance 
+of the program is with you. should the program prove defective, you assume the cost of all necessary servicing, repair or correction. 
+See the GNU General Public License for more details.
 ---
-see andreaconsole.altervista.org for further informations
-
-
-ESP
-* ejecute GiGiWxCapture (gigiwxcapture-launcher.exe o GiGiWxCapture.py, GiGiWxCapture.pyw on Windows) y ejecute su programa para la gesti�n del CCD (que tiene que serdisponible);
-* pulse la tecla "Select Capture Window". Se abrir� una ventana trasl�cida que se llama "Vampire Window";
-* ponga la ventana "Vampire Window" en el centro de la ventana del programa de gesti�n del CCD (el fondo deber�a ser negro, entonces tiene que cobrir o desconnectar el CCD);
-* pulse la tecla "Automatic" y espera que el programa encuetre los bordes de la ventana (o puede cambiar manualmente el tama�o de la ventana "Vampire Window" y despu�s pulsar "Manual");
-* comprobe que la ventana "Vampire Window" sea bien posicionada (pero no tiene que ser muy exigente).
----
-vea andreaconsole.altervista.org para m�s informaci�n
-
-
-FRA
-* lancez GiGiWxCapture (gigiwxcapture-launcher.exe ou GiGiWxCapture.py, GiGiWxCapture.pyw pour Windows) et lancez le logiciel pour la gestion des CCD (qui devrait �tre disponible);
-* Appuyez sur la touche "Select fen�tre de capture" bouton. Cela ouvrira une fen�tre translucide appel� "Vampire Window";
-* la position "Vampire Window" dans la fen�tre CCD logiciel de gestion (le fond doit �tre de couleur noire, puis avec le capteur d�branch� ou couvert);
-* Appuyez sur le bouton "Automatique" et attendez que le programme identifie les bords de la fen�tre d'acquisition (ou vous pouvez redimensionner manuellement la fen�tre et appuyez sur "Manual");
-* V�rifier le bon positionnement de la fen�tre "Vampire" (vous n'avez pas besoin d'�tre pointilleux).
----
-voir andreaconsole.altervista.org pour plus d'informations
+see andreaconsole.altervista.org for further informations (website translated with Google Translate)

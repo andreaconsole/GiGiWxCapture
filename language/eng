@@ -26,7 +26,7 @@
 25 The parameters of the software are the same as those in the configuration file. Nothing new to save.
 26 Configuration saved.
 27 Some parameters have been modified from those in the configuration file. Do you want to save the new configuration?
-28 Has the capture window been correctly found?
+28 Instructions://1. Click on the preview window of your CCD software. GiGiWebCapture will try to automatically find out its boundaries.//2. Manually adjust "vampire" window size and position, if necessary.//3. Click on "OK" button.
 29 Do you want to confirm the data you inserted in the module?
 30 Press ok and click on the star to measure (for a correct analysis, the star must not be saturated).
 31 Do you want to save the image in the capture window?

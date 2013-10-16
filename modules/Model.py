@@ -163,6 +163,10 @@ class Processes(object):
         self.FWHM = 0
         self.testMode = testMode
         self.multiplier = 1
+        self.R = 0
+        self.Q = 0
+        self.k1 = 0
+        self.k2 = 0
         #----------constS
         
 
@@ -223,7 +227,7 @@ class Processes(object):
         #
         thr = MIN_PIX_STEP + (pixelRedVal(x0-MIN_WIDTH//2, y0+1)+pixelRedVal(x0-MIN_WIDTH//2, y0-1)+
                               pixelRedVal(x0+MIN_WIDTH//2, y0+1)+pixelRedVal(x0+MIN_WIDTH//2, y0-1))//4
-        print thr
+        print "with threshold = ", thr
         #up
         pix1 = pix2  = 0
         x1 = x0 - MIN_WIDTH//2
@@ -845,7 +849,7 @@ class Processes(object):
         print "GuideCalc reset done"
     
     def GuideCalc(self, cdeltaX, cdeltaY):   # px, px
-        #deltaX, deltaY = KalmanFilter(self, deltaX, deltaY)
+        if self.Q == 0 or self.R == 0: deltaX, deltaY = KalmanFilter(self, deltaX, deltaY)
 	    #a1 = datetime.datetime.now() #for speed analysis        
         def sign(x):
             if x>0:

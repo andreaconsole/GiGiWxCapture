@@ -9,7 +9,7 @@ audio
 ----webcam LE [none]----
 audio
 ----invert correction (0 or 1) [0]----
-1
+0
 ----min AR correction (ms) [50]----
 50
 ----min DEC correction (ms) [50]----
@@ -38,13 +38,3 @@ audio
 ----R and Q for Kalman filter [0; 0]----
 0.0
 0.0
-
-
-
-
-
-
-
-
-
-

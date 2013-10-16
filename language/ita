@@ -26,7 +26,7 @@
 25 I parametri del programma sono uguali a quelli presenti nel file di configurazione. Nulla da salvare.
 26 Configurazione salvata.
 27 Alcuni parametri sono stati modificati rispetto a quelli presenti nel file di configurazione. Salvo la nuova configurazione?
-28 La finestra di ripresa è stata correttamente individuata?
+28 Istruzioni://1. Fai click in mezzo alla finestra di preview del tuo software di gestione del CCD. GiGiWxCapture cercherà di individuarne automaticamente i confini.//2. Se necessario, aggiusta manualmente la dimensione e la posizione della finestra "vampiro".//3. Premi il pulsante "OK".
 29 Confermi l'invio dei dati inseriti nel modulo?
 30 Premi ok e clicca con il mouse sulla stella da misurare (per una corretta analisi, la stella non deve essere satura).
 31 Vuoi salvare l'immagine della finestra di ripresa?

@@ -24,9 +24,6 @@
 ###    developed by you, I would appreciate if you mentioned me in your code.
 ###
 ################################################################################
-import time
-Sleep = time.sleep
-
 import wx
 from wx import xrc
 import webbrowser
@@ -44,10 +41,13 @@ import Model
 
 class Controller(object):
     def __init__(self,parent):
-        self.filelog = open('../out.log', 'w')
-        #sys.stdout = self.filelog #redirect text output to log file
-        #sys.stderr = self.filelog #redirect error output to log file
+        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         self.testMode = True
+        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        self.filelog = open('../out.log', 'w')
+        if not(self.testMode):
+            sys.stdout = self.filelog #redirect text output to log file
+            sys.stderr = self.filelog #redirect error output to log file
         self.testModeCounter = 0
         self.dcScreen=wx.ScreenDC()
         self.dcScreen.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -68,7 +68,7 @@ class Controller(object):
         self.MainFrame.Bind(wx.EVT_CLOSE, self.OnCloseMainWindow)
         self.MainFrame.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.ChangedTab, id=xrc.XRCID("schede"))
         #----------conf tab
-        self.MainFrame.Bind(wx.EVT_BUTTON, self.ShowVampire, id=xrc.XRCID("selectcapturewindow"))
+        self.MainFrame.Bind(wx.EVT_BUTTON, self.OnVampireFrame, id=xrc.XRCID("selectcapturewindow"))
         self.MainFrame.Bind(wx.EVT_BUTTON, self.SaveCurrentConfiguration, id=xrc.XRCID("savecurrentconfig"))
         self.MainFrame.Bind(wx.EVT_BUTTON, self.LoadConfig, id=xrc.XRCID("reloadconfig"))
 
@@ -202,8 +202,8 @@ class Controller(object):
         self.MainFrame.VampireFrame.Bind(wx.EVT_MOVE, self.SizeObserver)
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_RIGHT_UP, self.RightClickOnVampire)
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_LEFT_UP, self.LeftClickOnVampire)
-        self.MainFrame.VampireFrame.Bind(wx.EVT_BUTTON,self.WindowConfirm,id=xrc.XRCID("windowconfirm"))
         self.MainFrame.VampireFrame.windowconfirm = xrc.XRCCTRL(self.MainFrame.VampireFrame, "windowconfirm")
+        self.MainFrame.VampireFrame.Bind(wx.EVT_BUTTON, self.WindowConfirm, id=xrc.XRCID("windowconfirm"))
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_KEY_DOWN, self.KeyDownVampire)
         self.MainFrame.VampireFrame.vampirePanel.Bind(wx.EVT_KEY_UP, self.KeyUpVampire)
         self.MainFrame.VampireFrame.Bind(wx.EVT_KEY_DOWN, self.KeyDownVampire)
@@ -292,7 +292,8 @@ class Controller(object):
         self.MainFrame.AboutFrame.description.Label = self.testo[24]
         self.MainFrame.AboutFrame.helpText.Value = self.testo[38].replace("//", "\n")
         self.MainFrame.AboutFrame.description.Wrap(280)
-        self.MainFrame.VampireFrame.vampireLabel.Label = self.testo[28]
+        self.MainFrame.VampireFrame.vampireLabel.Label = self.testo[28].replace("//", "\n")
+        self.MainFrame.VampireFrame.vampireLabel.Wrap(400)
         self.MountPortSelect(None)
         self.a = self.b = 1
         self.correzione = 0
@@ -648,8 +649,11 @@ class Controller(object):
             self.movementCounter = 0
             
         elif self.status == "waiting_for_vampire_victim":
+            self.CtrlEnable(False)
+            self.calcClock.Stop()
             self.ShowVampire(None)
             self.MainFrame.VampireFrame.Maximize()
+            self.MainFrame.VampireFrame.windowconfirm.Hide()
         
         elif self.status == "waiting_for_vampire_victim_confirm":
             xmin, ymin, xmax, ymax = self.Processes.EnlargeToWindow(self.actualX, self.actualY, self.MIN_PIX_STEP, 100)
@@ -657,6 +661,7 @@ class Controller(object):
             self.MainFrame.VampireFrame.SetSize((xmax-xmin, ymax-ymin-self.WINDOWBAR_H))
             self.MainFrame.VampireFrame.Show()
             self.MainFrame.VampireFrame.Maximize(0)
+            self.MainFrame.VampireFrame.windowconfirm.Show()
         #----
         elif self.status == "idle":
             #guide idle
@@ -727,7 +732,7 @@ class Controller(object):
         self.MainFrame.Destroy()
 
     def OnVampireFrame(self,evt):
-        self.ShowVampire()
+        self.SetStatus("waiting_for_vampire_victim")
 
     def HideVampire(self):
         self.hideVampire = True
@@ -764,7 +769,7 @@ class Controller(object):
                 self.alphaAmount = 1 #transparent final value
                 self.MainFrame.VampireFrame.SetTransparent(self.alphaAmount)
                 self.MainFrame.VampireFrame.windowconfirm.Enable(False)
-                self.MainFrame.VampireFrame.windowconfirm.Hide()
+                #self.MainFrame.VampireFrame.windowconfirm.Hide()
                 self.timerShowHideVampire.Stop()
                 self.MainFrame.VampireFrame.vampirePanel.SetFocusIgnoringChildren()
         else:
@@ -950,7 +955,7 @@ class Controller(object):
             self.GuideChangeCommonControl(None)
         if self.MainFrame.schede.GetSelection() == 3:
             self.PetacChangeCommonControl(None)
-        self.SetStatus("idle")
+        if (self.status<>"waiting_for_vampire_victim") and (self.status<>"waiting_for_vampire_victim_confirm"): self.SetStatus("idle")
 
     def CtrlEnable(self, value):
         if self.controlMode != "none": self.MainFrame.guideCalibrationOnOff.Enabled = value
@@ -1430,7 +1435,7 @@ class Controller(object):
                     self.SetStatus("idle")
                     self.MainFrame.guideInstr.Value = self.testo[22]
                     print "GUIDE VALUES: ", self.MainFrame.arGuideValue.Value, self.MainFrame.decGuideValue.Value, "; invar-dec:", self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, "; angle:", self.angolo*57.3
-        else:
+        else: #with the vampire frame visible
             if self.status == "waiting_for_vampire_victim":
                 self.calcClock.Stop()
                 self.SetStatus("waiting_for_vampire_victim_confirm")
