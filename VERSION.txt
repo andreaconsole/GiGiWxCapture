@@ -1,15 +1,16 @@
 *This Version*
-GiGiWxCapture 3.0
+GiGiWxCapture 2.2
 
 FARE LE TRADUZIONI FRA ESP
 TOGLI LA TEST FASE
 
 *Updates* 
-20/10/2013 -> 2.1 -     New vampire approach, new star centroid calculation algorithm,
-						major autoguide code revision,  new fwhm algorithm, added fwhm
-						graph,  added auto-sum algorithm for guiding with not modified 
-						webcams, better performances for assisted bigourdan procedure, 
-						whole code revision.
+20/10/2013 -> 2.2 -     New vampire approach, new star centroid calculation algorithm,
+                        major autoguide code revision,  new fwhm algorithm, added fwhm
+                        graph, added  polar  alignment graph, added auto-sum algorithm 
+                        for guiding with not modified webcams, better performances for 
+                        assisted bigourdan procedure, whole code revision.
+13/09/2012 -> 2.1 -     Major improvement to autoguide alghorithm, minor revision     
 30/08/2012 -> 2.0 -     Code efficiency upgrade,  improved algorithm for star position
                         calculation, image noise filtering added,  kalman filter added 
                         to reduce  seeing effects,  big  improvement to autoguide code

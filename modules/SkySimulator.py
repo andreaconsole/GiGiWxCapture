@@ -68,7 +68,6 @@ class Controls(object):
         self.frame1 = wx.Frame(None, -1, "loading title...", size=(500, 400), pos=(500,20))
         # create the class instance
         self.panel1 = wx.Panel(self.frame1,-1)
-        #Panel1(self.frame1) 
         self.panel1.bg = Panel1(self.panel1)
         self.panel1.setAngle = wx.TextCtrl(self.panel1, -1, "0", (10,0),(30,22))
         self.panel1.setARdrift = wx.TextCtrl(self.panel1, -1, "5", (55,0),(30,22))
@@ -116,23 +115,10 @@ class Controls(object):
     def DrawClock(self, evt):       
         x = -(self.ARdrift * cos(self.angolo) - self.DECdrift * sin(self.angolo))
         y = -(self.ARdrift * sin(self.angolo) + self.DECdrift * cos(self.angolo))
-        #self.panel1.bg.bitmap1.SetPosition((round(x),round(y)))
         NewPilImage = self.panel1.bg.pilImage.transform(self.panel1.bg.pilImage.size, Image.AFFINE, (1,0,x,0,1,y), resample=Image.LINEAR)
-        #self.panel1.bg.bgBitmap.SetBitmap(im1.ConvertToBitmap())
-        self.panel1.bg.bgImage.SetData(NewPilImage.convert("RGB").tostring())
-        
+        self.panel1.bg.bgImage.SetData(NewPilImage.convert("RGB").tostring()) 
         bitmap = wx.BitmapFromImage(self.panel1.bg.bgImage)
         self.panel1.bg.bgBitmap.SetBitmap(bitmap)
-        #print im1     
-        #self.panel1.bitmap1.SetBitmap(self.panel1.im.ConvertToBitmap())
-        #image = wx.EmptyImage(im1.size[0], im1.size[1])
-        #new_image = im1.convert('RGB')
-        #data = new_image.tostring()
-        #image.SetData(data)
-        # show some image details
-        #str1 = "%s  %dx%d" % (image_file, bmp1.GetWidth(), bmp1.GetHeight()) 
-        #parent.SetTitle(str1)
-        #self.panel1.bitmap1.SetBitmap(image.ConvertToBitmap())
     
     def SendCommand(self, direction, interval):
         #print "received",direction,interval

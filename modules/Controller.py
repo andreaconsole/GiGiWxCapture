@@ -237,7 +237,8 @@ class Controller(object):
         #----------system output
         self.filelog = open('../out.log', 'w')
         if (self.testMode):
-            sys.stdout = self.MainFrame.AboutFrame.helpText
+            #sys.stdout = self.MainFrame.AboutFrame.helpText #out of the IDE
+            pass
         else:
             sys.stdout = self.filelog #redirect text output to log file
             sys.stderr = self.filelog #redirect error output to log file
