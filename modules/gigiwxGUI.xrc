@@ -277,14 +277,14 @@
           <object class="wxCheckBox" name="hisens">
             <pos>5,100</pos>
             <size>70,20</size>
-            <label>No LE Webcam</label>
+            <label>No L.E.</label>
             <fg>#ADD8E6</fg>
             <bg>#A52A2A</bg>
           </object>
-          <object class="wxCheckBox" name="justlock">
+          <object class="wxCheckBox" name="pulseguide">
             <pos>75,100</pos>
             <size>75,20</size>
-            <label>justlock</label>
+            <label>Pguide</label>
             <fg>#ADD8E6</fg>
             <bg>#A52A2A</bg>
           </object>
@@ -898,21 +898,21 @@
   </object>
   <object class="wxFrame" name="graphFrame">
     <size>700,100</size>
-    <title>GiGiWxCapture - Guide Graph</title>
+    <title>GiGiWxCapture - Graph</title>
     <bg>#401010</bg>
     <style>wxSTAY_ON_TOP|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCAPTION|wxCLIP_CHILDREN|wxCLOSE_BOX</style>
     <object class="wxBoxSizer">
       <object class="sizeritem">
         <object class="wxBoxSizer">
           <object class="sizeritem">
-            <object class="wxToggleButton" name="showarerr">
+            <object class="wxToggleButton" name="showgraph1">
               <label>AR err</label>
               <fg>#FF0000</fg>
             </object>
             <option>1</option>
           </object>
           <object class="sizeritem">
-            <object class="wxToggleButton" name="showdecerr">
+            <object class="wxToggleButton" name="showgraph2">
               <label>DEC err</label>
               <fg>#0000FF</fg>
             </object>
@@ -920,14 +920,14 @@
           </object>
           <orient>wxVERTICAL</orient>
           <object class="sizeritem">
-            <object class="wxToggleButton" name="showarcorr">
+            <object class="wxToggleButton" name="showgraph3">
               <label>AR corr</label>
               <fg>#FFA500</fg>
             </object>
             <option>1</option>
           </object>
           <object class="sizeritem">
-            <object class="wxToggleButton" name="showdeccorr">
+            <object class="wxToggleButton" name="showgraph4">
               <label>DEC corr</label>
               <fg>#00CC00</fg>
             </object>

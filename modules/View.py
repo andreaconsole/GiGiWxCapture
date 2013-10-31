@@ -56,11 +56,11 @@ class AboutFrame(wx.Frame):
 class GraphFrame(wx.Frame):
     def __init__(self,parent,resource):
         self.PostCreate(resource.LoadFrame(parent,"graphFrame"))
-        self.LeftDownCornerOnScreen()
+        self.RightDownCornerOnScreen()
         
-    def LeftDownCornerOnScreen(self):
+    def RightDownCornerOnScreen(self):
         ds,s = wx.DisplaySize(), self.GetSizeTuple()
-        x = 0
+        x = (ds[0] - s[0])
         y = (ds[1] - s[1])
         self.Move(wx.Point(x,y))
 

@@ -44,10 +44,6 @@ class Controller(object):
         #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         self.testMode = True
         #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        self.filelog = open('../out.log', 'w')
-        if not(self.testMode):
-            sys.stdout = self.filelog #redirect text output to log file
-            sys.stderr = self.filelog #redirect error output to log file
         self.testModeCounter = 0
         self.dcScreen=wx.ScreenDC()
         self.dcScreen.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -126,7 +122,7 @@ class Controller(object):
         self.MainFrame.invertAr = xrc.XRCCTRL(self.MainFrame,"invertar")
         self.MainFrame.invertDec = xrc.XRCCTRL(self.MainFrame,"invertdec")
         self.MainFrame.hiSens = xrc.XRCCTRL(self.MainFrame,"hisens")
-        self.MainFrame.justLock = xrc.XRCCTRL(self.MainFrame,"justlock")
+        self.MainFrame.pulseguide = xrc.XRCCTRL(self.MainFrame,"pulseguide")
         self.MainFrame.calibrationSize = xrc.XRCCTRL(self.MainFrame,"calibrationsize")
         self.MainFrame.Bind(wx.EVT_BUTTON, self.SetImagesDir, id=xrc.XRCID("imagesdir"))
         self.MainFrame.maxDithering = xrc.XRCCTRL(self.MainFrame,"maxdithering")
@@ -162,9 +158,10 @@ class Controller(object):
         self.MainFrame.Bind(wx.EVT_BUTTON, self.OnZoomFrame, id=xrc.XRCID("zoom2x"))
         self.MainFrame.zoom2x = xrc.XRCCTRL(self.MainFrame, "zoom2x")
         self.MainFrame.crosshair = xrc.XRCCTRL(self.MainFrame, "crosshair")
+        self.MainFrame.Bind(wx.EVT_TOGGLEBUTTON, self.CrosshairAct, id=xrc.XRCID("crosshair"))
         self.MainFrame.fwhmCalc = xrc.XRCCTRL(self.MainFrame, "fwhm")
-        self.MainFrame.takePicture = xrc.XRCCTRL(self.MainFrame, "takeapicture")
         self.MainFrame.Bind(wx.EVT_TOGGLEBUTTON, self.FwhmStart, id=xrc.XRCID("fwhm"))
+        self.MainFrame.takePicture = xrc.XRCCTRL(self.MainFrame, "takeapicture")
         self.MainFrame.Bind(wx.EVT_BUTTON, self.SavePicture, id=xrc.XRCID("takeapicture"))
         self.MainFrame.pictureNo = xrc.XRCCTRL(self.MainFrame, "pictureno")
         self.MainFrame.pictureInt = xrc.XRCCTRL(self.MainFrame, "pictureint")
@@ -214,14 +211,14 @@ class Controller(object):
         #----------Graph Frame
         self.MainFrame.GraphFrame.Bind(wx.EVT_CLOSE, self.OnCloseGraphWindow)
         self.MainFrame.GraphFrame.graphPanel = xrc.XRCCTRL(self.MainFrame.GraphFrame, "graphpanel")
-        self.MainFrame.GraphFrame.showArErr = xrc.XRCCTRL(self.MainFrame.GraphFrame, "showarerr")
-        self.MainFrame.GraphFrame.showDecErr = xrc.XRCCTRL(self.MainFrame.GraphFrame, "showdecerr")
-        self.MainFrame.GraphFrame.showArCorr = xrc.XRCCTRL(self.MainFrame.GraphFrame, "showarcorr")
-        self.MainFrame.GraphFrame.showDecCorr = xrc.XRCCTRL(self.MainFrame.GraphFrame, "showdeccorr")
-        self.MainFrame.GraphFrame.showArErr.SetValue(True)
-        self.MainFrame.GraphFrame.showDecErr.SetValue(True)
-        self.MainFrame.GraphFrame.showArCorr.SetValue(True)
-        self.MainFrame.GraphFrame.showDecCorr.SetValue(True)
+        self.MainFrame.GraphFrame.showGraph1 = xrc.XRCCTRL(self.MainFrame.GraphFrame, "showgraph1")
+        self.MainFrame.GraphFrame.showGraph2 = xrc.XRCCTRL(self.MainFrame.GraphFrame, "showgraph2")
+        self.MainFrame.GraphFrame.showGraph3 = xrc.XRCCTRL(self.MainFrame.GraphFrame, "showgraph3")
+        self.MainFrame.GraphFrame.showGraph4 = xrc.XRCCTRL(self.MainFrame.GraphFrame, "showgraph4")
+        self.MainFrame.GraphFrame.showGraph1.SetValue(True)
+        self.MainFrame.GraphFrame.showGraph2.SetValue(True)
+        self.MainFrame.GraphFrame.showGraph3.SetValue(True)
+        self.MainFrame.GraphFrame.showGraph4.SetValue(True)
         self.MainFrame.GraphFrame.graphPanel.Bind(wx.EVT_SIZE, self.SizeGraphFrame)
         self.MainFrame.GraphFrame.numPoints = xrc.XRCCTRL(self.MainFrame.GraphFrame, "numpoints")
         #----------About Frame
@@ -237,6 +234,13 @@ class Controller(object):
         self.MainFrame.AboutFrame.Bind(wx.EVT_BUTTON, self.SendHelpReq, id=xrc.XRCID("helpreq"))
         self.MainFrame.AboutFrame.Bind(wx.EVT_CLOSE, self.OnCloseAboutWindow)
         self.MainFrame.GraphFrame.Bind(wx.EVT_CLOSE, self.OnCloseGraphWindow)
+        #----------system output
+        self.filelog = open('../out.log', 'w')
+        if (self.testMode):
+            sys.stdout = self.MainFrame.AboutFrame.helpText
+        else:
+            sys.stdout = self.filelog #redirect text output to log file
+            sys.stderr = self.filelog #redirect error output to log file
         #----------constS
         self.MIN_PIX_STEP = 20 #minimum difference between pixel to find window border
         self.CIRCLE_DIAMETER = 20 #px: diameter of the drawn circle
@@ -249,7 +253,6 @@ class Controller(object):
         #self.CALC_INTERVAL = 1000 #millisecs: time between calculations
         self.STAR_TRACK_INTERVAL = 500 #millisecs: time between startrack calls
         self.MIN_CALIBRATION_TIME = 300 #secs: min time for petac calibration
-        self.MIN_SHIFT_TO_GUIDE = 2 #px: minimum difference between star position that reveals frame change
         #----------InitVar
         self.alphaAmount=254
         self.starPosition="s"
@@ -265,7 +268,6 @@ class Controller(object):
         self.MainFrame.Bind(wx.EVT_TIMER, self.PicSaveClock, self.picSaveClock)
 
         self.calcClock = wx.Timer(self.MainFrame)
-        #self.calcClock.Start(self.STAR_TRACK_INTERVAL)
         self.MainFrame.Bind(wx.EVT_TIMER, self.CalcClock, self.calcClock)
 
         self.zoomClock=wx.Timer(self.MainFrame)
@@ -273,7 +275,7 @@ class Controller(object):
         self.MainFrame.ZoomFrame.Bind(wx.EVT_PAINT, self.ZoomRefresh)
 
         self.xs, self.ys=-50, -50
-        self.genericCounter = 0
+        self.genericCounter = 0 #a class variable for every use...
         self.starTracking = False
         self.crosshairXs, self.crosshairYs=-50, -50
         self.actualX = 320
@@ -282,7 +284,6 @@ class Controller(object):
         self.vampirePosY = 0
         self.vampireSizeX = 0
         self.vampireSizeY = 0
-        self.alignmentErrorShow = False
         self.timeFromClick = wx.StopWatch() #create stopwatch
         self.timeFromLastGuide = wx.StopWatch() #create stopwatch
         self.controlMode = "none"
@@ -295,19 +296,16 @@ class Controller(object):
         self.MainFrame.VampireFrame.vampireLabel.Label = self.testo[28].replace("//", "\n")
         self.MainFrame.VampireFrame.vampireLabel.Wrap(400)
         self.MountPortSelect(None)
-        self.a = self.b = 1
         self.correzione = 0
         self.ditherCount = 0
         self.lastMoveTime = 0
         self.movementTime = 0
         self.storedImageSignature = 0
-        self.arErrList = [(0.0,0.0)]
-        self.decErrList = [(0.0,0.0)]
-        self.arCorrList = [(0.0,0.0)]
-        self.decCorrList = [(0.0,0.0)]
-        self.fwhmList = [(0.0,0.0)]
+        self.graph1List = [(0.0,0.0)]
+        self.graph2List = [(0.0,0.0)]
+        self.graph3List = [(0.0,0.0)]
+        self.graph4List = [(0.0,0.0)]
         self.SetStatus("waiting_for_vampire_victim")
-        #sys.stdout = self.MainFrame.AboutFrame.helpText
 
 #---- config&load
     def LoadConfig(self,evt):
@@ -339,6 +337,7 @@ class Controller(object):
             dial.ShowModal()
 
     def ValuesFromConfig(self):
+        #read values from config file
         self.MainFrame.languagecombo.Value = "eng"
         self.MainFrame.mountportcombo.Value = "none"
         self.MainFrame.camportcombo.Value = "none"
@@ -354,7 +353,7 @@ class Controller(object):
         self.MainFrame.petacMinCorr.Value = "50"
         self.MainFrame.petacMountLowSpeed.Value = "1.0"
         self.MainFrame.hiSens.Value = False
-        self.MainFrame.justLock.Value = False
+        self.MainFrame.pulseguide.Value = False
         self.MainFrame.calibrationSize.Value = "150"
         self.configLines = self.Configuration.ConfigLines()
         try:
@@ -373,7 +372,7 @@ class Controller(object):
             if self.configLines[25]<>"": self.MainFrame.petacMinCorr.Value = str(self.Processes.ExtractInt(self.configLines[25]))
             if self.configLines[27]<>"": self.MainFrame.petacMountLowSpeed.Value = str(self.Processes.ExtractFloat(self.configLines[27]))
             if self.configLines[29]<>"": self.MainFrame.hiSens.Value = bool(self.Processes.ExtractInt(self.configLines[29]))
-            if self.configLines[31]<>"": self.MainFrame.justLock.Value = bool(self.Processes.ExtractInt(self.configLines[31]))
+            if self.configLines[31]<>"": self.MainFrame.pulseguide.Value = bool(self.Processes.ExtractInt(self.configLines[31]))
             if self.configLines[33]<>"": self.MainFrame.calibrationSize.Value = str(self.Processes.ExtractInt(self.configLines[33]))
             if self.configLines[35]<>"": self.R = self.Processes.ExtractFloat(self.configLines[35])
             if self.configLines[36]<>"": self.Q = self.Processes.ExtractFloat(self.configLines[36])
@@ -383,6 +382,7 @@ class Controller(object):
             pass
             
     def ValuesToConfig(self):
+        #write values to config file
         self.configLines[5] = str(self.MainFrame.languagecombo.Value)
         self.configLines[7] = str(self.MainFrame.mountportcombo.Value)
         self.configLines[9] = str(self.MainFrame.camportcombo.Value)
@@ -396,7 +396,7 @@ class Controller(object):
         self.configLines[25] = str(self.Processes.ExtractInt(self.MainFrame.petacMinCorr.Value))
         self.configLines[27] = str(self.Processes.ExtractFloat(self.MainFrame.petacMountLowSpeed.Value))
         self.configLines[29] = str(self.Processes.ExtractInt(str(int(self.MainFrame.hiSens.Value))))
-        self.configLines[31] = str(self.Processes.ExtractInt(str(int(self.MainFrame.justLock.Value))))
+        self.configLines[31] = str(self.Processes.ExtractInt(str(int(self.MainFrame.pulseguide.Value))))
         self.configLines[33] = str(self.Processes.ExtractInt(self.MainFrame.calibrationSize.Value))
         self.configLines[35] = str(self.R)
         self.configLines[36] = str(self.Q)
@@ -405,6 +405,7 @@ class Controller(object):
         self.Configuration.ConfigLinesUpdate(self.configLines)
     
     def LoadTemp(self):
+        #read values from temp file (auto updated without asking)
         tempLines = self.Configuration.LoadTempFile()
         self.MainFrame.arGuideValue.Value = "0"
         self.MainFrame.petacArGuideValue.Value = "0"
@@ -443,6 +444,7 @@ class Controller(object):
             pass
 
     def SaveTemp(self):
+        #save values to temp configuration file
         tempLines = []
         tempLines.append(str(self.Processes.ExtractFloat(self.MainFrame.arGuideValue.Value)))
         tempLines.append(str(self.Processes.ExtractFloat(self.MainFrame.decGuideValue.Value)))
@@ -460,13 +462,13 @@ class Controller(object):
         
 #---- Status
     def SetStatus(self, status):
+        #set the variables and call methods when the status changes
         print status
         self.status = status
         if status == "camera_orientation_begin":
             self.starTracking = False
             self.correzione = 0
             self.verso = 0
-            self.alignmentErrorShow = False
             self.MainFrame.alignInstr.Value = self.testo[1]
             self.MainFrame.guideInstr.Value = self.testo[1]
 
@@ -489,14 +491,13 @@ class Controller(object):
             self.actualX, self.actualY, self.FWHM, imageSignature = self.Processes.StarTrack(self.actualX, self.actualY, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
             self.dcScreen.DrawLineList(self.Processes.CrossList(round(self.actualX),round(self.actualY),21, 30))
             self.xf, self.yf = self.actualX, self.actualY
-            self.a = self.xf - self.xo
-            self.b = self.yf - self.yo
-            if abs(self.a)>100 or abs(self.b)>100:
-                self.angolo = self.Processes.Angolo(self.a, self.b)
+            a = self.xf - self.xo
+            b = self.yf - self.yo
+            if abs(a)>100 or abs(b)>100:
+                self.angolo = self.Processes.Angolo(a, b)
                 self.SaveTemp()
                 self.SetStatus("alignment_cam_calibrated")
             else:
-                print self.a, self.b
                 dial=wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[20], 'Info', wx.OK | wx.ICON_INFORMATION)
                 dial.ShowModal()
                 self.SetStatus("idle")
@@ -519,24 +520,21 @@ class Controller(object):
 
         elif status == "alignment_star_tracking":
             self.starTracking = True
+            self.OnGraphFrame(None, 50) #graph for fwhm
             self.calcClock.Start(self.STAR_TRACK_INTERVAL)
             self.actualX, self.actualY, self.FWHM, imageSignature = self.Processes.StarTrack(self.actualX, self.actualY, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
             self.xo = -1
 
         elif status == "alignment_calc_ready":
-            self.xo, self.yo = self.actualX, self.actualY
-            self.Processes.ResetCorrezione()
-            self.xf, self.yf = self.actualX, self.actualY
-            self.arErrList = [(0,0)]
-            self.MainFrame.alignCorrection.Label = "Calc Correction"
+            pass
 
         elif self.status == "fwhm_wait":
             pass
 
         elif self.status == "fwhm_calc":
             self.starTracking = True
-            self.fwhmList = [(0.0,0.0)]
-            self.OnGraphFrame(None) #graph for fwhm
+            self.graph1List = [(0.0,0.0)]
+            self.OnGraphFrame(None, 10) #graph for fwhm
             self.calcClock.Start(self.STAR_TRACK_INTERVAL)
             self.timeFromClick.Start() #reset stopwatch
 
@@ -550,7 +548,7 @@ class Controller(object):
             self.calcClock.Start(self.STAR_TRACK_INTERVAL)
             self.MainFrame.guideSpeed.SetSelection(0)
             self.MainFrame.guideSpeed1.SetSelection(0)
-            self.Processes.GuideCalibrationRoutineStart(self.controlMode)
+            self.Processes.GuideCalibrationRoutineStart()
             self.MainFrame.guideInstr.Value = self.testo[21]
             self.MainFrame.petacInstr.Value = self.testo[21]
             
@@ -559,10 +557,6 @@ class Controller(object):
 
         elif self.status == "guiding":
             print "GUIDE VALUES: ", self.MainFrame.arGuideValue.Value, self.MainFrame.decGuideValue.Value, "; invar-dec:", self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, "; angle:", self.angolo*57.3
-            self.arErrList = [(0.0,0.0)]
-            self.decErrList = [(0.0,0.0)]
-            self.arCorrList = [(0.0,0.0)]
-            self.decCorrList = [(0.0,0.0)]
             self.Processes.KalmanFilterReset(self.R, self.Q)
             self.Processes.GuideCalcReset(self.k1, self.k2)
             self.MainFrame.guideCalibrationOnOff.Enabled = False
@@ -577,7 +571,7 @@ class Controller(object):
             self.MainFrame.dithStep.Enabled = False
             self.MainFrame.dithInterval.Enabled = False
             self.MainFrame.hiSens.Enabled = False
-            self.MainFrame.justLock.Enabled = False
+            self.MainFrame.pulseguide.Enabled = False
             self.meanARdrift = 0
             self.meanDECdrift = 0
             self.MainFrame.guideSpeed.SetSelection(0)
@@ -594,9 +588,9 @@ class Controller(object):
             self.Processes.GuideRoutineStart(self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value,
                                              float(self.MainFrame.arMinCorr.Value), float(self.MainFrame.decMinCorr.Value), 
                                              float(self.MainFrame.arGuideValue.Value), float(self.MainFrame.decGuideValue.Value), 
-                                             1000*self.guideIntervalSec, self.controlMode)
+                                             1000*self.guideIntervalSec, self.MainFrame.pulseguide.Value)
             if self.guideIntervalSec > 0:
-                self.OnGraphFrame(None)
+                self.OnGraphFrame(None, 100)
                 self.calcClock.Stop()
                 self.calcClock.Start(self.STAR_TRACK_INTERVAL)
                 self.timeFromLastGuide.Start() #reset stopwatch
@@ -665,10 +659,10 @@ class Controller(object):
         #----
         elif self.status == "idle":
             #guide idle
-            self.Processes.SendMountCommand("q", self.controlMode)
+            self.Processes.SendMountCommand("q", False)
             self.MainFrame.guideSpeed.SetSelection(1)
             self.MainFrame.guideSpeed1.SetSelection(1)
-            self.Processes.SendMountCommand("1", self.controlMode) #set speed to "min speed" (min)
+            self.Processes.SendMountCommand("1", False) #set speed to "min speed" (min)
             self.MainFrame.guideCalibrationOnOff.Value = False
             self.MainFrame.guideOnOff.Value = False
             self.MainFrame.petacCalOnOff.Value = False
@@ -684,7 +678,7 @@ class Controller(object):
             self.MainFrame.invertAr.Enabled = True
             self.MainFrame.invertDec.Enabled = True
             self.MainFrame.hiSens.Enabled = True
-            self.MainFrame.justLock.Enabled = True
+            self.MainFrame.pulseguide.Enabled = True
             self.MainFrame.maxDithering.Enabled = True
             self.MainFrame.dithStep.Enabled = True
             self.MainFrame.dithInterval.Enabled = True
@@ -709,12 +703,17 @@ class Controller(object):
             self.CtrlEnable(self.hideVampire)
             self.ResetCorrection(None)
             self.deltaX, self.deltaY = 0,0
+            self.graph1List = [(0.0,0.0)]
+            self.graph2List = [(0.0,0.0)]
+            self.graph3List = [(0.0,0.0)]
+            self.graph4List = [(0.0,0.0)]
             
         else: print "error - status " + status + " not valid"
         self.SaveTemp()
 
 #---- frames management
     def OnCloseMainWindow(self, evt):
+        #what to do when you close main window
         self.ValuesToConfig()
         if self.Configuration.IsConfigurationChanged():
             dial = wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[27], 'Question',
@@ -728,19 +727,22 @@ class Controller(object):
         self.drawClock.Destroy()
         self.calcClock.Destroy()
         self.zoomClock.Destroy()
-        self.Processes.CloseSerial()
+        self.Processes.Close()
         self.MainFrame.Destroy()
 
     def OnVampireFrame(self,evt):
+        #what to do when you open vampire window
         self.SetStatus("waiting_for_vampire_victim")
 
     def HideVampire(self):
+        #hide vampire window
         self.hideVampire = True
         self.CtrlEnable(True)
         self.timerShowHideVampire.Start(50)
         self.MainFrame.VampireFrame.vampirePanel.SetFocusIgnoringChildren()
 
     def ShowVampire(self,evt):
+        #show vampire window
         self.hideVampire = False
         self.MainFrame.VampireFrame.Show()
         self.MainFrame.VampireFrame.windowconfirm.Enable(True)
@@ -748,11 +750,8 @@ class Controller(object):
         self.timerShowHideVampire.Start(50)
         self.MainFrame.VampireFrame.vampirePanel.SetFocusIgnoringChildren()
 
-    def SetSmallWindow(self, Xpos, Ypos):
-        self.MainFrame.VampireFrame.SetSize((100,100))
-        self.MainFrame.VampireFrame.SetPosition((Xpos-50, Ypos-50))
-
     def SizeObserver(self,evt):
+        #update size and position of vampire window
         self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
         self.vampireSizeX,self.vampireSizeY = self.MainFrame.VampireFrame.GetSize()
         self.vampireSizeY += self.WINDOWBAR_H
@@ -761,6 +760,7 @@ class Controller(object):
         self.errorGraphY = self.vampirePosY+40
 
     def AlphaCycle(self,evt):
+        #set transparency of vampire window
         if (self.hideVampire):
             self.alphaAmount=self.alphaAmount-10 #make the vampire frame transparent
             if (self.alphaAmount>0):
@@ -785,6 +785,7 @@ class Controller(object):
                 self.MainFrame.VampireFrame.SetSize((self.vampireSizeX-20, self.vampireSizeY-20))
 
     def KeyDownVampire(self,evt):
+        #manage keypressed (keydown event) while the focus is on vampire windows
         keycode = evt.GetKeyCode()
         if self.controlMode != "none" and self.lastMountCommand == "quit":
             self.lastMountCommand = "move"
@@ -799,7 +800,7 @@ class Controller(object):
                 self.MainFrame.mountLeftPic1.Show(False)
                 self.MainFrame.mountRightPic1.Show(False)
                 self.MainFrame.mountStopPic1.Show(False)
-                self.Processes.SendMountCommand("n", self.controlMode, self.MainFrame.invertDec.Value)
+                self.Processes.SendMountCommand("n", self.MainFrame.invertDec.Value)
             elif keycode == wx.WXK_DOWN:
                 self.MainFrame.mountUpPic.Show(False)
                 self.MainFrame.mountDownPic.Show(True)
@@ -811,7 +812,7 @@ class Controller(object):
                 self.MainFrame.mountLeftPic1.Show(False)
                 self.MainFrame.mountRightPic1.Show(False)
                 self.MainFrame.mountStopPic1.Show(False)
-                self.Processes.SendMountCommand("s", self.controlMode, self.MainFrame.invertDec.Value)
+                self.Processes.SendMountCommand("s", self.MainFrame.invertDec.Value)
             elif keycode == wx.WXK_LEFT:
                 self.MainFrame.mountUpPic.Show(False)
                 self.MainFrame.mountDownPic.Show(False)
@@ -823,7 +824,7 @@ class Controller(object):
                 self.MainFrame.mountLeftPic1.Show(True)
                 self.MainFrame.mountRightPic1.Show(False)
                 self.MainFrame.mountStopPic1.Show(False)
-                self.Processes.SendMountCommand("w", self.controlMode, self.MainFrame.invertAr.Value)
+                self.Processes.SendMountCommand("w", self.MainFrame.invertAr.Value)
             elif keycode == wx.WXK_RIGHT:
                 self.MainFrame.mountUpPic.Show(False)
                 self.MainFrame.mountDownPic.Show(False)
@@ -835,7 +836,7 @@ class Controller(object):
                 self.MainFrame.mountLeftPic1.Show(False)
                 self.MainFrame.mountRightPic1.Show(True)
                 self.MainFrame.mountStopPic1.Show(False)
-                self.Processes.SendMountCommand("e", self.controlMode, self.MainFrame.invertAr.Value)
+                self.Processes.SendMountCommand("e", self.MainFrame.invertAr.Value)
             elif keycode == wx.WXK_PAGEDOWN:
                 self.collimatorSize -= 1
                 self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
@@ -850,6 +851,7 @@ class Controller(object):
                 self.lastMountCommand = "quit"
 
     def KeyUpVampire(self,evt):
+        #manage keypressed (keyup event) while the focus is on vampire windows
         if self.controlMode != "none":
             self.MainFrame.mountUpPic.Show(False)
             self.MainFrame.mountDownPic.Show(False)
@@ -862,12 +864,14 @@ class Controller(object):
             self.MainFrame.mountRightPic1.Show(False)
             self.MainFrame.mountStopPic1.Show(True)
             self.lastMountCommand = "quit"
-            self.Processes.SendMountCommand("q", self.controlMode)
+            self.Processes.SendMountCommand("q", False)
 
     def LeftClickOnVampire(self,evt):
+        #manage left mouse click on the vampire windows
         print "left click"
         xs, ys = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, evt.X, evt.Y)
         self.MainFrame.VampireFrame.SetFocus()
+        print xs, ys
         if self.status == "waiting_for_vampire_victim":
             self.actualX, self.actualY =  xs, ys
             self.MainFrame.VampireFrame.Hide()
@@ -888,6 +892,7 @@ class Controller(object):
             elif self.status == "guide_calibration_waiting": self.SetStatus("guide_calibrating")
 
     def RightClickOnVampire(self,evt):
+        #manage right mouse click on the vampire windows
         print "right click"
         xs, ys = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, evt.X, evt.Y)
         if (xs>self.CIRCLE_DIAMETER+self.vampirePosX and ys>self.CIRCLE_DIAMETER+self.vampirePosY and
@@ -897,6 +902,7 @@ class Controller(object):
             self.crosshairList = self.Processes.SetCrosshair(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, self.crosshairXs, self.crosshairYs, self.collimatorSize)
 
     def MouseMovingOnVampire(self,evt):
+        #manage mouse moving event on the vampire windows
         xs, ys = wx.GetMousePosition()
         colore = self.dcScreen.GetPixel(xs,ys)
         if (xs>self.CIRCLE_DIAMETER+self.vampirePosX and ys>self.CIRCLE_DIAMETER+self.vampirePosY and
@@ -907,35 +913,37 @@ class Controller(object):
             self.MainFrame.ZoomFrame.Title = "R:"+str(colore[0])+" G:"+str(colore[1])+" B:"+str(colore[2])
 
     def OnAboutFrame(self,evt):
+        #open about window
         self.MainFrame.AboutFrame.Show()
 
     def OnCloseAboutWindow(self, evt):
+        #what to do when you close the about window
         evt.Veto()
         self.MainFrame.AboutFrame.Hide()
         
-    def OnGraphFrame(self,evt):
-        self.Processes.GuideGraphInit(self.MainFrame.GraphFrame.graphPanel)
+    def OnGraphFrame(self, evt, numpoints=0 ):
+        #open graph window
+        self.Processes.GenericGraphInit(self.MainFrame.GraphFrame.graphPanel)
         self.MainFrame.GraphFrame.Show()
-        self.GuideGraphUpdate("")
+        self.GenericGraphUpdate(numpoints)
     
     def SizeGraphFrame(self,evt):
-        self.Processes.GuideGraphInit(self.MainFrame.GraphFrame.graphPanel)
+        #what to do when you resize graph window
+        self.Processes.GenericGraphInit(self.MainFrame.GraphFrame.graphPanel)
         
     def OnCloseGraphWindow(self, evt):
+        #what to do when you close graph window
         evt.Veto()
         self.MainFrame.GraphFrame.Hide()
 
     def OnZoomFrame(self,evt):
+        #what to do when you open zoom window
         if self.hideVampire:
             self.MainFrame.ZoomFrame.Show()
             self.zoomClock.Start(200)
 
-    def OffZoomFrame(self,evt):
-        evt.Veto()
-        self.MainFrame.ZoomFrame.Hide()
-        self.zoomClock.Stop()
-
     def OnCloseZoomWindow(self, evt):
+        #what to do when you close zoom window
         evt.Veto()
         self.zoomClock.Stop()
         self.MainFrame.ZoomFrame.Hide()
@@ -946,11 +954,13 @@ class Controller(object):
         self.MainFrame.ZoomFrame.Update()
 
     def ZoomRefresh(self, evt):
+        #refresh zoom window
         if self.hideVampire:
             self.Processes.ZoomRefresh(self.MainFrame.ZoomFrame, self.zoomSizeX, self.zoomSizeY, self.xs, self.ys)
 
 #---- controls - main frame
     def ChangedTab(self, evt):
+        #manage changetab event
         if self.MainFrame.schede.GetSelection() == 2:
             self.GuideChangeCommonControl(None)
         if self.MainFrame.schede.GetSelection() == 3:
@@ -958,6 +968,7 @@ class Controller(object):
         if (self.status<>"waiting_for_vampire_victim") and (self.status<>"waiting_for_vampire_victim_confirm"): self.SetStatus("idle")
 
     def CtrlEnable(self, value):
+        #enable main window controls
         if self.controlMode != "none": self.MainFrame.guideCalibrationOnOff.Enabled = value
         if self.controlMode != "none": self.MainFrame.petacguideCalibrationOnOff.Enabled = value
         if self.controlMode != "none": self.MainFrame.guideOnOff.Enabled = value
@@ -971,6 +982,7 @@ class Controller(object):
         self.MainFrame.takePicture.Enabled = value
 
     def LanguageSelect(self,evt):
+        #manage language change event
         success = self.Configuration.LoadLanguage(self.MainFrame.languagecombo.Value)
         if success:
             self.testo = tuple(self.Configuration.TextLines())
@@ -987,15 +999,18 @@ class Controller(object):
                          "no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text","no-text")
 
     def CameraOrientation(self,evt):
+        #start camera orientation procedure
         self.SetStatus("camera_orientation_begin")
 
     def PEwarning(self,evt):
+        #show text about PE saving
         if self.MainFrame.savePE.Value:
             dial = wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[33], 'Info', wx.ICON_INFORMATION | wx.OK)
             dial.SetIcon(self.GiGiWxIcon)
             dial.ShowModal()
 
     def AlignCorrection(self,evt):
+        #manage "correction" button event
         self.MainFrame.VampireFrame.Refresh()
         if self.status == "alignment_calc_ready":
             if self.MainFrame.savePE.Value:
@@ -1003,7 +1018,7 @@ class Controller(object):
                 c = c.replace(" ","_")
                 c = c.replace(":","-")
                 filename ="../stored_data/PE_" + c + ".txt"
-                self.Processes.SaveList(filename,self.arErrList)
+                self.Processes.SaveList(filename,self.graph1List)
             self.correzione, self.verso = self.Processes.CalcCorrection (self.angolo, self.xo, self.yo, self.xf, self.yf, self.MainFrame.VampireFrame, self.testo[10])
             # show text about making correction
             self.alignCorrList, self.alignCorrListInv, numCorr, self.xf, self.yf, self.xo, self.yo = self.Processes.DrawCorrectionCalc (self.angolo, self.correzione, self.verso,
@@ -1029,6 +1044,7 @@ class Controller(object):
             self.SetStatus("alignment_star_waiting")
 
     def ResetCorrection(self,evt):
+        #manage "reset correction" button event
         if self.starPosition == "s":
             self.Processes.SetFattCorr(1)
         else:
@@ -1037,6 +1053,7 @@ class Controller(object):
         self.Processes.ResetUltimaCorrezione()
 
     def GuideChangeCommonControl(self,evt):
+        #conform guide tab settings to petac tab settings
         self.MainFrame.invertAr.Value = self.MainFrame.petacInvertAr.Value
         self.MainFrame.invertDec.Value = self.MainFrame.petacInvertDec.Value
         self.MainFrame.arGuideValue.Value = self.MainFrame.petacArGuideValue.Value
@@ -1045,6 +1062,7 @@ class Controller(object):
         self.MainFrame.dithStep.Value = self.MainFrame.petacDithStep.Value
 
     def PetacChangeCommonControl(self,evt):
+        #conform petac tab settings to guide tab settings
         self.MainFrame.petacInvertAr.Value = self.MainFrame.invertAr.Value
         self.MainFrame.petacInvertDec.Value = self.MainFrame.invertDec.Value
         self.MainFrame.petacArGuideValue.Value = self.MainFrame.arGuideValue.Value
@@ -1053,6 +1071,7 @@ class Controller(object):
         self.MainFrame.petacDithStep.Value = self.MainFrame.dithStep.Value
 
     def SetCalType(self,evt,which):
+        #manage the change of correction type
         if which=="s":
             self.MainFrame.alignCorrection.SetLabel(label="Azimuth Correction")
         elif which=="e":
@@ -1064,6 +1083,7 @@ class Controller(object):
         self.ResetCorrection(None)
 
     def MountPortSelect(self,evt):
+        #manage the change of mount port
         if self.MainFrame.mountportcombo.Value == "none":
             self.MainFrame.guideCalibrationOnOff.Enabled = False
             self.MainFrame.petacguideCalibrationOnOff.Enabled = False
@@ -1079,7 +1099,6 @@ class Controller(object):
                 self.MainFrame.guideOnOff.Enabled = True
                 self.MainFrame.petacOnOff.Enabled = True
                 self.controlMode = "audio"
-                self.lastMountCommand = "quit"
             except:
                 print "problem with audio configuration"
                 self.MainFrame.mountportcombo.Value = "none"
@@ -1093,8 +1112,6 @@ class Controller(object):
                 self.MainFrame.guideOnOff.Enabled = True
                 self.MainFrame.petacOnOff.Enabled = True
                 self.controlMode = "serial"
-                self.Processes.SendMountCommand("1", self.controlMode) #set speed to "center speed" (mid)
-                self.lastMountCommand = "quit"
             except:
                 try:
                     stringa = "/dev/ttyUSB"+strip(str(self.MainFrame.mountportcombo.Value[6:]))
@@ -1104,14 +1121,16 @@ class Controller(object):
                     self.MainFrame.guideOnOff.Enabled = True
                     self.MainFrame.petacOnOff.Enabled = True
                     self.controlMode = "serial"
-                    self.Processes.SendMountCommand("1", self.controlMode) #set speed to "center speed" (mid)
-                    self.lastMountCommand = "quit"
                 except:
                     dial=wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[17], 'Info', wx.ICON_ERROR | wx.OK)
                     dial.ShowModal()
-                    self.MainFrame.mountportcombo.Value = "none"              
+                    self.MainFrame.mountportcombo.Value = "none"
+        self.Processes.SetControlMode(self.controlMode)
+        self.Processes.SendMountCommand("1", False) #set speed to "center speed" (mid)
+        self.lastMountCommand = "quit"              
             
     def CamPortSelect(self,evt):
+        #manage the change of camera control port (long exposure)
         if self.MainFrame.camportcombo.Value == "none":
             self.camControlMode = "none"
 
@@ -1140,66 +1159,66 @@ class Controller(object):
 
     
     def SetMountSpeed(self,evt):
-        self.Processes.SendMountCommand(str(evt.GetInt()), self.controlMode)
+        #manage the change of mount speed
+        self.Processes.SendMountCommand(str(evt.GetInt()), False)
         
     def SetImagesDir(self,evt):
+        #manage the change of image saving directory
         self.imagesPath = self.Processes.DirChoose(self.imagesPath, self.testo[39])
         print self.imagesPath
 
     def GuideCalibrationRoutineStartStop(self,evt):
+        #manage start/stop of full automatic calibration routine
         if self.hideVampire:
             if self.status == "guide_calibrating" or self.status == "guide_calibration_waiting":
                 self.SetStatus("idle")
-                self.Processes.SendMountCommand("q", self.controlMode)
+                self.Processes.SendMountCommand("q", False)
                 self.MainFrame.guideInstr.Value = self.testo[23]
             else:
                 self.SetStatus("guide_calibration_waiting")
 
     def GuideStartStop(self,evt):
+        #manage guiding start/stop
         if self.hideVampire:
             if self.status == "guiding" or self.status == "guide_star_waiting":
                 self.SetStatus("idle")
-                self.Processes.SaveList("../stored_data/error_AR.txt",self.arErrList)
-                self.Processes.SaveList("../stored_data/error_DEC.txt",self.decErrList)
-                self.Processes.SaveList("../stored_data/correction_AR.txt",self.arCorrList)
-                self.Processes.SaveList("../stored_data/correction_DEC.txt",self.decCorrList)          
+                self.Processes.SaveList("../stored_data/error_AR.txt",self.graph1List)
+                self.Processes.SaveList("../stored_data/error_DEC.txt",self.graph2List)
+                self.Processes.SaveList("../stored_data/correction_AR.txt",self.graph3List)
+                self.Processes.SaveList("../stored_data/correction_DEC.txt",self.graph4List)          
             else:
                 self.SaveTemp()
                 self.SetStatus("guide_star_waiting")
                 
-    def GuideGraphUpdate(self,type):
-        numpoints = min(int(self.Processes.ExtractInt(self.MainFrame.GraphFrame.numPoints.Value)),max(len(self.arErrList)-1, len(self.fwhmList)-1))
-        numpoints = max(numpoints,1)
-        if type == "AR-DEC":
-            if self.MainFrame.GraphFrame.showArErr.GetValue():
-                data1 = self.arErrList[-numpoints:]
-            else: 
-                data1 = []
-            if self.MainFrame.GraphFrame.showDecErr.GetValue():
-                data2 = self.decErrList[-numpoints:]
-            else: 
-                data2 = []
-            if self.MainFrame.GraphFrame.showArCorr.GetValue():
-                data3 = self.arCorrList[-numpoints:]
-            else: 
-                data3 = []
-            if self.MainFrame.GraphFrame.showDecCorr.GetValue():
-                data4 = self.decCorrList[-numpoints:]
-            else: 
-                data4 = []
-        elif type == "FWHM":
-            data1 = self.fwhmList[-numpoints:]
-            data2 = self.fwhmList[-numpoints:]
-            data3 = self.fwhmList[-numpoints:]
-            data4 = self.fwhmList[-numpoints:]
+    def GenericGraphUpdate(self, numpoints, desc1="", desc2="", desc3="", desc4=""):
+        #update the graph of desc1, desc2, etc with numpoints points. No desc => no graph; if numpoints=0,
+        #read from numpoints textarea in graph windows
+        if numpoints>1:
+            self.MainFrame.GraphFrame.numPoints.SetValue(str(numpoints))
         else:
+            numpoints = min(int(self.Processes.ExtractInt(self.MainFrame.GraphFrame.numPoints.Value)),max(len(self.graph1List)-1, len(self.graph1List)-1))
+            numpoints = max(numpoints,1)
+        descriptions = [desc1, desc2, desc3, desc4]
+        if self.MainFrame.GraphFrame.showGraph1.GetValue():
+            data1 = self.graph1List[-numpoints:]
+        else: 
             data1 = []
+        if self.MainFrame.GraphFrame.showGraph2.GetValue():
+            data2 = self.graph2List[-numpoints:]
+        else: 
             data2 = []
+        if self.MainFrame.GraphFrame.showGraph3.GetValue():
+            data3 = self.graph3List[-numpoints:]
+        else: 
             data3 = []
+        if self.MainFrame.GraphFrame.showGraph4.GetValue():
+            data4 = self.graph4List[-numpoints:]
+        else: 
             data4 = []
-        self.Processes.GuideGraphDraw(self.MainFrame.GraphFrame.graphPanel, data1, data2, data3, data4)
+        self.Processes.GenericGraphDraw(self.MainFrame.GraphFrame, data1, data2, data3, data4, descriptions )
 
     def PetacCalStartStop(self,evt):
+        #manage PETAC calibration routine start/stop
         if self.hideVampire:
             if self.status == "petac_calibration":
                 self.SetStatus("idle")
@@ -1207,6 +1226,7 @@ class Controller(object):
                 self.SetStatus("petac_calibration")
 
     def PetacStartStop(self,evt):
+        #manage PETAC routine start/stop
         if self.hideVampire:
             if self.status == "petac_operating" or self.status == "petac_star_waiting":
                 self.SetStatus("idle")
@@ -1215,6 +1235,7 @@ class Controller(object):
                 self.SetStatus("petac_star_waiting")
 
     def MouseMovingOnPetacButton(self,evt):
+        #manage mouse moving event on PETAC control button
         self.petacFlag = not(self.petacFlag) #take one movement over two, because one is fake since it comes from WarpPointer function
         if (self.timeFromClick.Time()//1000-self.MIN_CORR_TIME >= 0) and (
            self.status == "petac_calibration" or self.status == "petac_operating") and (self.petacFlag):
@@ -1239,16 +1260,14 @@ class Controller(object):
                 #check if picture is changed in order to apply guide and dithering (a startrack will eventually show a difference)
                 latestX, latestY = self.actualX, self.actualY
                 self.actualX, self.actualY, self.FWHM, imageSignature = self.Processes.StarTrack(self.actualX, self.actualY, self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY)
-                if abs(self.actualX-latestX) >= self.MIN_SHIFT_TO_GUIDE or abs(self.actualY-latestY) >= self.MIN_SHIFT_TO_GUIDE:
-                    print "Dithering..."
-                    thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC))
                 #apply pet-ac correction if needed
                 if self.lastMoveTime > 0 and self.petacVal > 0:
                     print "movement interval: ", self.movementTime-self.lastMoveTime
-                    self.Processes.SendPetacCorrection(self.movementTime-self.lastMoveTime, self.petacVal, float(self.MainFrame.petacMountLowSpeed.Value), self.controlMode)
+                    self.Processes.SendPetacCorrection(self.movementTime-self.lastMoveTime, self.petacVal, float(self.MainFrame.petacMountLowSpeed.Value))
                 self.MainFrame.petacTab.WarpPointer(self.PETAC_BUTTON_CENTER_X, self.PETAC_BUTTON_CENTER_Y) #center the mouse in the button
             
     def SavePicture(self,evt):
+        #save a picture from vampire window
         if self.hideVampire or self.MainFrame.picFullScreen.Value:
             dial = wx.MessageDialog(self.MainFrame, self.testo[31], 'Question', wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
             ret = dial.ShowModal()
@@ -1260,9 +1279,11 @@ class Controller(object):
                 self.picSaveClock.Start(50+1000*self.Processes.ExtractInt(self.MainFrame.pictureInt.Value))              
     
     def PicFullScreen(self,evt):
+        #manage the possibility of taking a full screenshot
         self.MainFrame.takePicture.Enabled = self.MainFrame.picFullScreen.Value or self.hideVampire
         
     def FieldUpdate(self,evt):
+        #updates field calculator output
         try:
             width=float(self.MainFrame.ccdW.GetValue())
         except:
@@ -1278,6 +1299,7 @@ class Controller(object):
         self.MainFrame.field.SetValue(self.Processes.FieldUpdate(width,height,focal))
         
     def ColorFromCode(self, code):
+        #returns color value for crosshair
         if code == 0: color = "#000000"
         if code == 1: color = "#FF0000"
         if code == 2: color = "#00FF00"
@@ -1288,16 +1310,24 @@ class Controller(object):
         if code == 7: color = "#FFFFFF"
         return color
 
-    def FwhmStart(self,evt):
+    def FwhmStart(self, evt):
+        #manage the FWHM calculation start
         if self.MainFrame.fwhmCalc.Value:
             dial=wx.MessageDialog(self.MainFrame.VampireFrame, self.testo[30], 'Info', wx.OK | wx.ICON_INFORMATION)
             dial.ShowModal()
             self.SetStatus("fwhm_wait")
         else:
             self.SetStatus("idle")
+    
+    def CrosshairAct(self, evt):
+        #give crosshai use instructions
+        if self.MainFrame.crosshair.Value:
+            dial=wx.MessageDialog(self.MainFrame, self.testo[40], 'Info', wx.OK | wx.ICON_INFORMATION)
+            dial.ShowModal()       
 
 #---- controls - vampire frame
     def WindowConfirm(self,evt):
+        #manage the confirmation of vampire window size and position
         self.HideVampire()
         self.vampirePosX, self.vampirePosY = self.MainFrame.VampireFrame.GetPosition()
         self.crosshairXs,self.crosshairYs = wx.Window.ClientToScreenXY(self.MainFrame.VampireFrame, self.vampireSizeX//2, self.vampireSizeY//2)
@@ -1306,18 +1336,22 @@ class Controller(object):
 
 #---- controls - about frame
     def OnNameClick(self, event):
+        #manage left click on "name" textarea
         self.MainFrame.AboutFrame.name.SetValue('')
         event.Skip()
 
     def OnCityClick(self, event):
+        #manage left click on "city" textarea
         self.MainFrame.AboutFrame.city.SetValue('')
         event.Skip()
 
     def OnCommentClick(self, evt):
+        #manage left click on "comment" textarea
         self.MainFrame.AboutFrame.comment.SetValue('')
         evt.Skip()
 
     def SendId(self,evt):
+        #manage confirmation request for feedback sending
         dial = wx.MessageDialog(self.MainFrame.AboutFrame, self.testo[29], 'Question',
                wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
         ret = dial.ShowModal()
@@ -1330,12 +1364,14 @@ class Controller(object):
             self.MainFrame.AboutFrame.Hide()
     
     def SendHelpReq(self,evt):
+        #manage help requests
         idPC = self.Processes.CalcId()
         webbrowser.open_new_tab("http://andreaconsole.altervista.org/index.php?webpage=gigiwxcapture&codice="+idPC)
         self.MainFrame.AboutFrame.Hide()
 
 #---- clocks and other methods
     def CalcClock(self,evt):
+        #manage calculation clock event
         if self.hideVampire:
             #action depending on status
             if self.starTracking:
@@ -1348,26 +1384,34 @@ class Controller(object):
             if self.status == "fwhm_calc":
                 self.MainFrame.fwhmCalc.Label = "FWHM = "+str(round(self.FWHM,2))
                 if self.timeFromClick.Time()//1000 >5:
-                    self.fwhmList.append((self.timeFromClick.Time()//1000-5, round(self.FWHM,1)))
-                    self.GuideGraphUpdate("FWHM") #graph for fwhm
+                    self.graph1List.append((self.timeFromClick.Time()//1000-5, round(self.FWHM,1)))
+                    self.GenericGraphUpdate(0, "FWHM") #graph for fwhm
 
             elif self.status == "alignment_star_tracking" and self.timeFromClick.Time()//1000 >= self.MIN_CORR_TIME:
+                self.xo, self.yo = self.actualX, self.actualY
+                self.Processes.ResetCorrezione()
+                self.xf, self.yf = self.actualX, self.actualY
+                self.graph1List = [(0,0)]
+                self.MainFrame.alignCorrection.Label = "Calc Correction"
                 self.SetStatus ("alignment_calc_ready")
 
             elif self.status == "alignment_calc_ready" and imageSignature != self.storedImageSignature:
                 correctionElapsedTime = self.timeFromClick.Time()//1000
                 self.storedImageSignature = imageSignature
                 self.xf, self.yf = self.actualX, self.actualY
-                mediaPesata, deviazione, fattCorr, arDiff = self.Processes.UpdateCorrection(self.a,self.b,self.xo,self.yo,self.xf,self.yf, self.angolo,
+                semicorr, deviazione, fattCorr, arDiff = self.Processes.UpdateCorrection(self.xo,self.yo,self.xf,self.yf, self.angolo,
                                                                           correctionElapsedTime - self.MIN_CORR_TIME)
                 self.MainFrame.alignInstr.Value = ("Elapsed Time=" + str(correctionElapsedTime - self.MIN_CORR_TIME) +
-                                                   ";\nCorrection=" + str(int(mediaPesata * 86164 * fattCorr / 6.28)) +
-                                                   ";\nDelta=" + str(round(10000*deviazione,2)) + ";\nLatest Corr. Weight=" +
+                                                   ";\nCorrection=" + str(int(semicorr * 86164 * fattCorr / 6.28)) +
+                                                   ";\nDelta=" + str(round(deviazione)) + ";\nLatest Corr. Weight=" +
                                                     str(round(fattCorr,4)) + "\n" + self.testo[5])
+                self.graph1List.append((correctionElapsedTime, int(semicorr * 86164 * fattCorr / 6.28)))
+                self.GenericGraphUpdate(0, "Correction") #graph for fwhm
+
                 if self.MainFrame.savePE.Value:
                     #append arDiff values to PE dictionary (saved on procedure exit)
-                    self.arErrList.append((timeFromLastGuide.Time()//1000 - self.MIN_CORR_TIME, round(arDiff, 1)))
-                    print self.arErrList[-1]
+                    self.graph1List.append((timeFromLastGuide.Time()//1000 - self.MIN_CORR_TIME, round(arDiff, 1)))
+                    #print self.graph1List[-1]
 
             elif self.status == "guiding":
                 #check if an image has been added (dithinterval will be always > 0)
@@ -1388,7 +1432,6 @@ class Controller(object):
                     guideCenterX, guideCenterY = self.Processes.DitheringAdd(self.guideCenterX, self.guideCenterY)
                     self.deltaX, self.deltaY = self.actualX-guideCenterX, self.actualY-guideCenterY
                     deltaAR, deltaDEC = self.Processes.CoordConvert(self.deltaX, self.deltaY, self.angolo)
-                    print deltaAR, deltaDEC
                     #apply guide                
                     thread.start_new_thread(self.Processes.GuideRoutine,(deltaAR, deltaDEC))
                     #--- guiding statS
@@ -1403,10 +1446,10 @@ class Controller(object):
                     ) + "\n Dith = (" + str(round(self.Processes.dithIncrX,1)) + ", " + str(round(self.Processes.dithIncrY,1)) + ")"+ "\n Angle = " + str(round(57.3 * self.angolo)
                     ) + "\n Last corr in ms (AR - DEC) = (" + str(round(self.Processes.GuideLastARcorr(),1)) + ", " + str(round(self.Processes.GuideLastDECcorr(),1)) + ")")
                     ElapsedTime = float(round(self.timeFromClick.Time()/1000,1))
-                    self.arErrList.append((ElapsedTime, deltaAR))
-                    self.decErrList.append((ElapsedTime, deltaDEC))
-                    self.arCorrList.append((ElapsedTime, round(float(self.Processes.GuideLastARcorr())/(float(self.MainFrame.arGuideValue.Value)+1),2)))
-                    self.decCorrList.append((ElapsedTime, round(float(self.Processes.GuideLastDECcorr())/(float(self.MainFrame.decGuideValue.Value)+1),2)))
+                    self.graph1List.append((ElapsedTime, deltaAR))
+                    self.graph2List.append((ElapsedTime, deltaDEC))
+                    self.graph3List.append((ElapsedTime, round(float(self.Processes.GuideLastARcorr())/(float(self.MainFrame.arGuideValue.Value)+1),2)))
+                    self.graph4List.append((ElapsedTime, round(float(self.Processes.GuideLastDECcorr())/(float(self.MainFrame.decGuideValue.Value)+1),2)))
                     #---save image in testmode
                     if self.testMode:
                         self.testModeCounter += 1
@@ -1415,14 +1458,14 @@ class Controller(object):
                             self.Processes.SavePicture(self.vampirePosX, self.vampirePosY, self.vampireSizeX, self.vampireSizeY, filename)
                             print "saved test image"
                     #------------------------------
-                    self.GuideGraphUpdate("AR-DEC")
+                    self.GenericGraphUpdate(0, "AR err", "DEC err", "AR corr", "DEC corr")
                     self.timeFromLastGuide.Start() #reset stopwatch
 
             elif self.status == "guide_calibration_waiting":
                 pass
 
             elif self.status == "guide_calibrating":
-                corrRateAR, corrRateDEC, invAR, invDEC, angolo, countdown = self.Processes.GuideCalibrationRoutine(self.actualX, self.actualY, self.controlMode, self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, self.calibrationSize)
+                corrRateAR, corrRateDEC, invAR, invDEC, angolo, countdown = self.Processes.GuideCalibrationRoutine(self.actualX, self.actualY, self.MainFrame.invertAr.Value, self.MainFrame.invertDec.Value, self.calibrationSize)
                 self.MainFrame.guideInstr.Value += ". "
                 self.genericCounter += 1
                 if self.genericCounter >=10:
@@ -1441,6 +1484,7 @@ class Controller(object):
                 self.SetStatus("waiting_for_vampire_victim_confirm")
                 
     def PicSaveClock(self,evt):
+        #manage the clock event related to multiple image saving
         picCount = self.Processes.ExtractInt(self.MainFrame.pictureNo.Value)
         picIndex = self.picTotal - picCount + 1
         self.MainFrame.picProgress.Value = int(100*(float(picIndex)/float(self.picTotal)))
@@ -1461,6 +1505,7 @@ class Controller(object):
             self.MainFrame.picProgress.Value = 0
         
     def DrawClock(self,evt):
+        #manage the clock event related to drawings update
         if self.hideVampire:
             self.dcScreen = wx.ScreenDC()
             self.dcScreen.SetBrush(wx.TRANSPARENT_BRUSH)
@@ -1487,6 +1532,7 @@ class Controller(object):
                 if self.correzione>0: self.DrawCorrection()
 
     def DrawCorrection(self):
+        #draw the line scheme for polar alignment correction
         self.dcScreen.SetBrush(wx.TRANSPARENT_BRUSH)
         self.dcScreen.SetPen(wx.Pen(wx.RED,2))
         # draws little starting circle and lines

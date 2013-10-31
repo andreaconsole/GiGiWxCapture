@@ -32,11 +32,11 @@ audio
 0
 ----calibration window size (px) [30]----
 20
-----k1 and k2 for guiding controller [0.6; 0]----
-0.6
-0.0
 ----R and Q for Kalman filter [0; 0]----
 0.0
+0.0
+----k1 and k2 for guiding controller [0.6; 0]----
+0.6
 0.0
 
 

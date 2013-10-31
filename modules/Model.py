@@ -38,9 +38,6 @@ import string
 strip = string.strip
 lower = string.lower
 #import serial #import moved in InitSerial function
-import operator
-add = operator.add
-sub = operator.sub
 import math
 sqrt = math.sqrt
 sin = math.sin
@@ -49,7 +46,9 @@ tan = math.tan
 atan = math.atan
 pi = math.pi
 atan2 = math.atan2
-hypot = math.hypot
+hypot = math.hypot #Return the Euclidean norm, sqrt(x*x + y*y). This is the length of the vector from the origin to point (x, y).
+
+import SkySimulator
 
 class Configuration(object):
     def __init__(self, configFileName, tempFileName, languageFileName):
@@ -59,6 +58,7 @@ class Configuration(object):
         self.LANGUAGE_FILE_SIZE = 30
 
     def LoadConfiguration(self):
+        #load configuration file
         size = 50
         try:
             self.configLines = size*[""]
@@ -78,6 +78,7 @@ class Configuration(object):
             outputFile.close()
     
     def LoadTempFile(self):
+        #load temp configuration file (autosaved)
         tempFile = []
         try:
             inputFile = open(self.tempFileName,"r")
@@ -91,6 +92,7 @@ class Configuration(object):
         return tempFile
 
     def LoadLanguage(self,which):
+        #load language file
         try:
             self.textLines = []
             inputFile = open(os.path.abspath(self.languageFileName+"/"+which),"r")
@@ -105,38 +107,45 @@ class Configuration(object):
         except:
             print os.path.abspath(self.languageFileName+"/"+which)
             return False #file not valid
-        
-    def SaveTempFile(self, tempFile):
-        outputFile=open(os.path.abspath(self.tempFileName),"w")
-        for line in tempFile:
-            outputFile.write(line)
-            outputFile.write("\n")
-        outputFile.close()
-        
+                
     def SaveConfiguration(self):
+        #save configuration file
         outputFile=open(os.path.abspath(self.configFileName),"w")
         self.defaultConfig = self.configLines
         for line in self.configLines:
             outputFile.write(line)
             outputFile.write("\n")
         outputFile.close()
+        
+    def SaveTempFile(self, tempFile):
+        #save temp file
+        outputFile=open(os.path.abspath(self.tempFileName),"w")
+        for line in tempFile:
+            outputFile.write(line)
+            outputFile.write("\n")
+        outputFile.close()
 
     def IsConfigurationChanged(self):
+        #check if configuration values are changed from the loaded ones
         if self.configLines != self.defaultConfig:
             print self.defaultConfig
             print self.configLines
         return self.configLines != self.defaultConfig
 
     def ConfigLines(self):
+        #method to get config values
         return self.configLines
 
     def TextLines(self):
+        #method to get language lines
         return self.textLines
 
     def ConfigLinesUpdate(self, configLines):
+        #method to set config values
         self.configLines = configLines
 
     def ListFiles(self,directory):
+        #method to get the list of files in directory
         dirList=os.listdir(os.path.abspath(directory))
         return dirList
 
@@ -144,6 +153,7 @@ class Configuration(object):
 class Processes(object):
 
     def __init__(self, dcScreen, testMode = False):
+        if testMode: self.Simulator = SkySimulator.Controls()
         self.dcScreen = dcScreen
         self.ser = None #initialize the serial port variable
         self.deviazione = 0
@@ -151,6 +161,7 @@ class Processes(object):
         self.status = -1
         self.mediaPesata = -1
         self.ultimaCorrezione = 0
+        self.ultimaSemiCorrezione = 100
         self.ultimoVerso = 0
         self.fattCorr = 1 # correct for 45degree declination (default)
         self.screenSizeX, self.screenSizeY = wx.DisplaySize()
@@ -169,8 +180,13 @@ class Processes(object):
         self.k2 = 0
         #----------constS
         
-
+    def Close(self):
+        #destroy the class
+        self.CloseSerial()
+        if self.testMode: self.Simulator.frame1.Destroy()
+        
     def InitSerial(self,which,baudrateVal = 9600):
+        #init serial link
         try:
             import serial
         except:
@@ -182,6 +198,7 @@ class Processes(object):
         print self.ser.portstr
 
     def InitAudio(self):
+        #init audio control
         self.soundCamera = wx.Sound(os.path.abspath("../audio/camera.wav"))
         self.soundN = wx.Sound(os.path.abspath("../audio/c1.wav"))
         self.soundS = wx.Sound(os.path.abspath("../audio/c4.wav"))
@@ -191,12 +208,18 @@ class Processes(object):
         self.soundQ.Play(wx.SOUND_ASYNC)
 
     def CloseSerial(self):
+        #close serial link
         if (self.ser != None):
             if (self.ser.isOpen()):
                 self.ser.close()
                 self.ser = None
+            
+    def SetControlMode(self, controlMode):
+        #method to set controlMode class variable
+        self.controlMode = controlMode
 
     def EnlargeToWindow(self, x0, y0, MIN_PIX_STEP, MIN_WIDTH):
+        #procedure to find "vampirized" window boundaries
         print "searching for borders from (",x0,y0,")"
         #create a copy of screen image in memory
         pixelTempBuffer = numpy.zeros((self.screenSizeX*self.screenSizeY*3), dtype=numpy.uint8)
@@ -214,17 +237,6 @@ class Processes(object):
                 output = 0
             return output
         
-        # check these pixels to see when VampireFrame covers exactly video window,
-        # and enlarge VampireFrame if not
-        #
-        #       ------------------
-        #       |       3        |
-        #       |                |
-        #       |1              2|
-        #       |                |
-        #       |       4        |
-        #       ------------------
-        #
         thr = MIN_PIX_STEP + (pixelRedVal(x0-MIN_WIDTH//2, y0+1)+pixelRedVal(x0-MIN_WIDTH//2, y0-1)+
                               pixelRedVal(x0+MIN_WIDTH//2, y0+1)+pixelRedVal(x0+MIN_WIDTH//2, y0-1))//4
         print "with threshold = ", thr
@@ -280,6 +292,7 @@ class Processes(object):
         return xmin, ymin, xmax, ymax
 
     def ZoomRefresh(self, ZoomFrame, zoomSizeX, zoomSizeY, xs, ys):
+        #refresh zoom window
         bitmap=wx.EmptyBitmap(zoomSizeX//2 ,zoomSizeY//2,-1)
         self.memory1.SelectObject(bitmap)
         self.memory1.Blit(0,0,zoomSizeX//2,zoomSizeY//2,self.dcScreen,
@@ -290,6 +303,7 @@ class Processes(object):
         dcZoom.DrawBitmap(bitmap, 0, 0, False)
 
     def SetCrosshair(self, winPosX, winPosY, winSizeX, winSizeY, crosshairXs, crosshairYs, bigLinePosizion):
+        #method to build crosshair line structure
         largeLine = 50
         crosshairList = [
             (winPosX,crosshairYs,winPosX+winSizeX,crosshairYs),
@@ -330,6 +344,7 @@ class Processes(object):
         return crosshairList
 
     def CalcId(self):
+        #calculate a unique PC/USER id
         idString=""
         try:
             idString += sys.platform
@@ -347,6 +362,7 @@ class Processes(object):
         return idString
 
     def FieldUpdate(self, width, height, focal):
+        #update the field calculator output
         if focal != 0:
             field = str(round(((width * 3437.75) / focal), 1))+"' x "+str(round(((height * 3437.75) / focal), 1))+"'"
         else:
@@ -354,6 +370,7 @@ class Processes(object):
         return field
 
     def SavePicture(self, winPosX, winPosY, winSizeX, winSizeY, nomefile):
+        #save a screenshot (part of screen) as nomefile
         try:
             bitmap=wx.EmptyBitmap(winSizeX, winSizeY,-1)
             self.memory2.SelectObject(bitmap)
@@ -366,14 +383,10 @@ class Processes(object):
 
     
     def StarTrack(self, actualX, actualY, winPosX, winPosY, winSizeX, winSizeY, iterations = 1):
-    # centers the star and finds fwhm; track radius = 9px
-    # 0<starFilter<=1. It's a filter against noise. The smaller the stronger.
-    
+        #centers the star and finds fwhm; track radius = 9px
         MIN_DISTANCE = 35 #minimum distance from the border of window
-        MIN_PEAK_VALUE = 20 #minimum peak value for a star to be seen (don't guide on fainter)
         TRACK_RADIUS = 10
-        STAR_LOST = 0.6
-
+        NO_STAR_LIMIT = 100 #minimunm sum pixel values in star area (TRACK_RADIUS x TRACK_RADIUS)
         #create a copy of screen image in memory
         self.memory.SelectObject(self.bitmap)
         self.memory.Blit(0,0,self.screenSizeX,self.screenSizeY,self.dcScreen,0,0)
@@ -437,12 +450,16 @@ class Processes(object):
             bgList = map(pixelRedVal, Xborder, Yborder)
             bg = (sum(bgList)-max(bgList)-min(bgList))/2
             pixelValues = map(subtr,map(pixelRedVal, Xarray, Yarray),len(Xarray)*[bg])
-            pdf = map(div,pixelValues,len(Xarray)*[sum(pixelValues)])
+            pixelSum = sum(pixelValues)+0.1
+#             if pixelSum<NO_STAR_LIMIT:
+#                 pdf = self.oldPdf
+#             else:
+            pdf = map(div,pixelValues,len(Xarray)*[pixelSum])
             actualX = sum(map(mult, pdf, Xarray)) # E(x)
             actualY = sum(map(mult, pdf, Yarray)) # E(y)
         #FMHM = 2,355*sigma; sigma^2 = E(x^2) - E(x)^2
-        fwhmX = 2.355*((sum(map(multquad, pdf, Xarray)) - actualX**2)**0.5)
-        fwhmY = 2.355*((sum(map(multquad, pdf, Yarray)) - actualY**2)**0.5)
+        fwhmX = 2.355*(abs(sum(map(multquad, pdf, Xarray)) - actualX**2)**0.5)
+        fwhmY = 2.355*(abs(sum(map(multquad, pdf, Yarray)) - actualY**2)**0.5)
         if self.FWHM == 0:
             self.FWHM = 0.5*(fwhmX+fwhmY)
         else:
@@ -459,10 +476,8 @@ class Processes(object):
         return actualX, actualY, self.FWHM, imageSignature
 
     def Angolo(self,a,b):
-        if a == 0: 
-            angolo = pi/2
-        else:
-            angolo = atan(b/a)
+        #calculates angle
+        angolo = -atan2(b,a) #because y is from top to bottom
         return angolo
     
     def CoordConvert(self,x,y,angolo): 
@@ -472,29 +487,39 @@ class Processes(object):
         return x1, y1
 
     def SetFattCorr(self,value):
+        #method to set fattCorr class variable (for alignment - related to star declination)
         self.fattCorr = value
 
     def GetFattCorr(self):
+        #method to get fattCorr class variable (for alignment - related to star declination)
         return self.fattCorr
 
     def ResetUltimaCorrezione(self):
+        #method to reset ultimaCorrezione class variable (for alignment - last correction applied)
         self.ultimaCorrezione = 0
 
     def ResetCorrezione(self):
-        self.mediaPesata = 0
+        #method to reset correzione class variable (for alignment - last correction applied)
+        self.ultimaSemiCorrezione = 100
         self.deviazione = 0
 
-    def UpdateCorrection(self, a ,b , xo, yo, xf, yf, angolo, trueCorrectionElapsedTime):
-        c = sqrt(a**2+b**2)
+    def UpdateCorrection(self, xo, yo, xf, yf, angolo, trueCorrectionElapsedTime):
+        #calculate needed correction for polar alignment
+        a = 1.0
+        b = math.tan(-angolo)
+        if b==0: b=0.01
+        c = hypot(1,b)
         decDiff = (a*yo-a*yf+b*xf-b*xo)/c
         arDiff = (decDiff*a+yf*c-yo*c)/b
         semiCorrezione = (decDiff)/(trueCorrectionElapsedTime + 0.1)
-        self.deviazione += 0.1*(semiCorrezione - self.mediaPesata - self.deviazione)
-        self.mediaPesata += 0.1 * (semiCorrezione - self.mediaPesata)
-        return self.mediaPesata, self.deviazione, self.fattCorr, arDiff
+        print decDiff, semiCorrezione
+        deviazione = 100*(semiCorrezione-self.ultimaSemiCorrezione)/self.ultimaSemiCorrezione
+        self.ultimaSemiCorrezione = semiCorrezione
+        return semiCorrezione, deviazione, self.fattCorr, arDiff
 
-    def CalcCorrection (self, angolo, xo, yo, xf, yf, window, warningtext ):
-        correzione = abs(round(self.mediaPesata * 86164 * self.fattCorr / (2 * pi)))
+    def CalcCorrection (self, angolo, xo, yo, xf, yf, window, warningtext):
+        #convert needed correction for polar alignment in pixels
+        correzione = abs(round(self.ultimaSemiCorrezione * 86164 * self.fattCorr / (2 * pi)))
         #calculate direction of correction
         verso = cmp(0,(yf * cos(angolo) - xf * sin(angolo)) - (yo * cos(angolo) - xo * sin(angolo))) #invert correction
         # verifies if error has become bigger
@@ -518,6 +543,7 @@ class Processes(object):
         return correzione, verso
 
     def DrawCorrectionCalc(self, angolo, correzione, verso, winPosX, winPosY, winSizeX, winSizeY, xf, yf):
+        #draw correction lines
         winRatio=float(winSizeY)/float(winSizeX)
         # optimization of correction circle drawing
         # first checks if it is possible to center the circle on the star (if the circle remains in the window)
@@ -651,6 +677,7 @@ class Processes(object):
         return alignCorrList, alignCorrListInv, numCorr, x1, y1, x3, y3
 
     def CrossList (self, centerX, centerY, lineStart, lineEnd):
+        #return coordinates to draw the cross around the star you are tracking
             CrossList = [
             (centerX-lineStart,centerY,centerX-lineEnd,centerY),
             (centerX+lineStart,centerY,centerX+lineEnd,centerY),
@@ -660,6 +687,7 @@ class Processes(object):
             return CrossList
 
     def SaveList(self, filename, listToSave):
+        #save an array as a list text file (e.g. for PE analysis)
         outputFile=open(os.path.abspath(filename),"w")
         n = 0
         while n < len(listToSave):
@@ -668,11 +696,13 @@ class Processes(object):
         outputFile.close()
 
     def DitheringInit(self, maxDith, dithStep):
+        #method to reset dithering variables
         self.dithIncrX, self.dithIncrY = 0, 0
         self.dithFactX, self.dithFactY = dithStep, dithStep
         self.maxDith = maxDith
 
     def DitheringUpdate(self):
+        #method to update dithering variables when dithering occurs
         if self.maxDith>0 and self.dithFactX<>0:
             self.dithIncrX += self.dithFactX
             self.dithIncrY += self.dithFactY
@@ -683,13 +713,14 @@ class Processes(object):
         print "Dithering NOW: ", self.dithIncrX, self.dithIncrY
     
     def DitheringAdd(self, guideCenterX, guideCenterY):
+        #method to get guide center point after dithering
         guideCenterX += self.dithIncrX
         guideCenterY += self.dithIncrY
         #print "center moved of: ", self.dithIncrX, self.dithIncrY
         return guideCenterX, guideCenterY
 
-    def SendMountCommand(self, direction, controlMode, inv = False):
-        # if msTimeCorr<0: send simply the command to the mount, else: move, sleeps msTimeCorr milliseconds, and stops
+    def SendMountCommand(self, direction, inv, interval = -1):
+        # if interval < 0: send simply the command to the mount, else: move, sleeps msTimeCorr milliseconds, and stops
         if (inv and (direction == "w")): direction = "e"
         elif (inv and (direction == "e")): direction = "w"
         elif (inv and (direction == "n")): direction = "s"
@@ -699,94 +730,61 @@ class Processes(object):
         elif (inv and (direction == "qn")):direction = "qs"
         elif (inv and (direction == "qs")):direction = "qn"
         print "mount command: ", direction
-        if  controlMode == "serial": #serial control
-            try:
-                if   direction == "w": Stringa = "#:Mw#"
-                elif direction == "e": Stringa = "#:Me#"
-                elif direction == "n": Stringa = "#:Mn#"
-                elif direction == "s": Stringa = "#:Ms#"
-                elif direction == "qw": Stringa = "#:Qw#"
-                elif direction == "qe": Stringa = "#:Qe#"
-                elif direction == "qn": Stringa = "#:Qn#"
-                elif direction == "qs": Stringa = "#:Qs#"
-                elif direction == "q": Stringa = "#:Q#"
-                elif direction == "0": Stringa = "#:RG#"
-                elif direction == "1": Stringa = "#:RC#"
-                elif direction == "2": Stringa = "#:RM#"
-                else: return
-                self.ser.write(Stringa)
-            except:
+        
+        if self.testMode:
+            self.Simulator.SendCommand(direction, -1)
+        else:
+            if  self.controlMode == "serial": #serial control
                 try:
-                    self.ser.write("#:Q#")
+                    if   direction == "qw": Stringa = "#:Qw#"
+                    elif direction == "qe": Stringa = "#:Qe#"
+                    elif direction == "qn": Stringa = "#:Qn#"
+                    elif direction == "qs": Stringa = "#:Qs#"
+                    elif direction == "q": Stringa = "#:Q#"
+                    elif direction == "0": Stringa = "#:RG#"
+                    elif direction == "1": Stringa = "#:RC#"
+                    elif direction == "2": Stringa = "#:RM#"
+                    elif interval > 0:
+                        if   direction == "w": Stringa = "#:Mgw"+'{0:04}'.format(int(interval))+"#"
+                        elif direction == "e": Stringa = "#:Mge"+'{0:04}'.format(int(interval))+"#"
+                        elif direction == "n": Stringa = "#:Mgn"+'{0:04}'.format(int(interval))+"#"
+                        elif direction == "s": Stringa = "#:Mgs"+'{0:04}'.format(int(interval))+"#"
+                        else: return
+                        print Stringa
+                    elif interval < 0:                
+                        if   direction == "w": Stringa = "#:Mw#"
+                        elif direction == "e": Stringa = "#:Me#"
+                        elif direction == "n": Stringa = "#:Mn#"
+                        elif direction == "s": Stringa = "#:Ms#"
+                        else: return
+                    else: return
+                    self.ser.write(Stringa)
                 except:
-                    pass
-
-        elif controlMode == "audio": # audio control
-            if direction == "w":
-                self.soundW.Play(wx.SOUND_ASYNC)
-                if self.testMode: self.f=open("W","w")
-            elif direction == "e":
-                self.soundE.Play(wx.SOUND_ASYNC)
-                if self.testMode: self.f=open("E","w")
-            elif direction == "n":
-                self.soundN.Play(wx.SOUND_ASYNC)
-                if self.testMode: self.f=open("N","w")
-            elif direction == "s":
-                self.soundS.Play(wx.SOUND_ASYNC)
-                if self.testMode: self.f=open("S","w")
-            elif direction == "q": 
-                self.soundQ.Play(wx.SOUND_ASYNC)
-                if self.testMode:
                     try:
-                        self.f.close()
-                        if (os.path.exists('N')): os.unlink('N')
-                        if (os.path.exists('S')): os.unlink('S')
-                        if (os.path.exists('E')): os.unlink('E')
-                        if (os.path.exists('W')): os.unlink('W')
+                        self.ser.write("#:Q#")
                     except:
                         pass
-            elif direction == "qw" or direction == "qe": 
-                self.soundQ.Play(wx.SOUND_ASYNC)
-                if self.testMode:
-                    try:
-                        self.f.close()
-                        if (os.path.exists('E')): os.unlink('E')
-                        if (os.path.exists('W')): os.unlink('W')
-                    except:
-                        pass
-            elif direction == "qn" or direction == "qs": 
-                self.soundQ.Play(wx.SOUND_ASYNC)
-                if self.testMode:
-                    try:
-                        self.f.close()
-                        if (os.path.exists('N')): os.unlink('N')
-                        if (os.path.exists('S')): os.unlink('S')
-                    except:
-                        pass
-            elif direction == "0":
-                if self.testMode: 
-                    self.f=open("s0","w")
-                    if (os.path.exists('s2')): os.unlink('s2')
-                    if (os.path.exists('s1')): os.unlink('s1')
-            elif direction == "1":
-                if self.testMode: 
-                    self.f=open("s1","w")
-                    if (os.path.exists('s0')): os.unlink('s0')
-                    if (os.path.exists('s2')): os.unlink('s2')
-            elif direction == "2":
-                if self.testMode: 
-                    self.f=open("s2","w")
-                    if (os.path.exists('s0')): os.unlink('s0')
-                    if (os.path.exists('s1')): os.unlink('s1')
     
-    def SetCamLE(self, value, controlMode):
-        if  controlMode == "serial": #serial control
+            elif self.controlMode == "audio": # audio control
+                if direction == "w": self.soundW.Play(wx.SOUND_ASYNC)
+                elif direction == "e": self.soundE.Play(wx.SOUND_ASYNC)
+                elif direction == "n": self.soundN.Play(wx.SOUND_ASYNC)
+                elif direction == "s": self.soundS.Play(wx.SOUND_ASYNC)
+                elif direction == "q": self.soundQ.Play(wx.SOUND_ASYNC)
+                elif direction == "qw" or direction == "qe": self.soundQ.Play(wx.SOUND_ASYNC)
+                elif direction == "qn" or direction == "qs": self.soundQ.Play(wx.SOUND_ASYNC)
+                else: return
+             
+                
+    def SetCamLE(self, value, camControlMode):
+        #method to set Long Exposure ON or OFF
+        if  camControlMode == "serial": #serial control
             try:            
                 self.ser.setDTR(value)
             except:
                 print "serial error"
 
-        elif controlMode == "audio": # audio control
+        elif camControlMode == "audio": # audio control
             print "LE=", value
             try:
                 if value:
@@ -797,6 +795,7 @@ class Processes(object):
                 print "audio error"
             
     def KalmanFilterReset(self, R, Q):
+        #method to reset the kalman filter
         P = numpy.matrix('1 1; 1 1')
         K = numpy.matrix('0 0; 0 0')
         self.kdeltaX = 0
@@ -807,6 +806,7 @@ class Processes(object):
         
     
     def KalmanFilter(self, deltaXmeas, deltaYmeas):
+        #method to calculate and get kalman filtered values
         #
         # state variable X = [Dx; Dy]
         # measured value M = [Mx; My]
@@ -842,6 +842,7 @@ class Processes(object):
         return X[0,0], X[1,0]
        
     def GuideCalcReset(self, k1, k2):
+        #method to reset guide PID controller
         self.cdeltaXold = 0
         self.cdeltaYold = 0
         self.k1 = k1
@@ -849,8 +850,9 @@ class Processes(object):
         print "GuideCalc reset done"
     
     def GuideCalc(self, cdeltaX, cdeltaY):   # px, px
-        if self.Q == 0 or self.R == 0: deltaX, deltaY = KalmanFilter(self, deltaX, deltaY)
-	    #a1 = datetime.datetime.now() #for speed analysis        
+        #method to calc guide corrections (kalman + PID)
+        #a1 = datetime.datetime.now() #for speed analysis     
+        if self.Q <> 0 and self.R <> 0: deltaX, deltaY = self.KalmanFilter(self, deltaX, deltaY)   
         def sign(x):
             if x>0:
                 y = 1
@@ -875,7 +877,8 @@ class Processes(object):
         #print "guidecalc", b1-a1 #for speed analysis
         return correctionX, correctionY     
             
-    def GuideGraphInit(self, frm):
+    def GenericGraphInit(self, frm):
+        #method for initializing graph window
         self.client = plot.PlotCanvas(frm)
         frame_size = frm.GetClientSize()
         self.client.SetInitialSize(size=frame_size)
@@ -884,34 +887,52 @@ class Processes(object):
         self.client.SetBackgroundColour("#401010")
         self.client.SetForegroundColour("#ADD8E6")
                
-    def GuideGraphDraw(self, frm, data1, data2, data3, data4):
-        line1 = plot.PolyLine(data1, legend='AR or FWHM', colour='red', width=1)
-        line2 = plot.PolyLine(data2, legend='DEC', colour='blue', width=1)
-        line3 = plot.PolyLine(data3, legend='AR corr', colour='orange', width=1)
-        line4 = plot.PolyLine(data4, legend='DEC corr', colour='cyan', width=1)
-        gc = plot.PlotGraphics([line4, line3, line2, line1])
+    def GenericGraphDraw(self, frm, data1, data2, data3, data4, descriptions):
+        #method for graph drawing
+        frm.showGraph1.SetLabel(descriptions[0])
+        frm.showGraph2.SetLabel(descriptions[1])
+        frm.showGraph3.SetLabel(descriptions[2])
+        frm.showGraph4.SetLabel(descriptions[3])
+        lines = []
+        if len(data1)>1: 
+            line1 = plot.PolyLine(data1, legend=descriptions[0], colour='red', width=1)
+            lines.append(line1)
+        if len(data2)>1: 
+            line2 = plot.PolyLine(data2, legend=descriptions[1], colour='blue', width=1)
+            lines.append(line2)
+        if len(data3)>1: 
+            line3 = plot.PolyLine(data3, legend=descriptions[2], colour='orange', width=1)
+            lines.append(line3)
+        if len(data4)>1: 
+            line4 = plot.PolyLine(data4, legend=descriptions[3], colour='cyan', width=1)
+            lines.append(line4)
+        gc = plot.PlotGraphics(lines)
         try:
             self.client.Draw(gc)
         except:
             pass
         
-    def GuideRoutineStart(self, invAR, invDEC, minARcorr, minDECcorr, corrRateAR, corrRateDEC, guideInterval, controlMode):
-        self.SendMountCommand("0", controlMode) #set speed to "min speed" (min)
+    def GuideRoutineStart(self, invAR, invDEC, minARcorr, minDECcorr, corrRateAR, corrRateDEC, guideInterval, pulseGuideOn):
+        #method for initializing guide routine
+        self.SendMountCommand("0", False) #set speed to "min speed" (min)
         self.ARcorr, self.DECcorr = 0, 0 #ARcorr and DECcorr are class level beacause are returned by GuideLastARcorr methods
         self.invAR, self.invDEC = invAR, invDEC #used by GuideRoutine
         self.minARcorr, self.minDECcorr = minARcorr, minDECcorr #used by GuideRoutine
         self.guideInterval = guideInterval #used by GuideRoutine
         self.corrRateAR, self.corrRateDEC = corrRateAR, corrRateDEC #used by GuideCalc
-        self.controlMode = controlMode #used by GuideRoutine
-        print "guide params: ", self.invAR, self.invDEC, self.minARcorr, self.minDECcorr, self.controlMode
+        self.pulseGuideOn = pulseGuideOn  #used by GuideRoutine
+        print "guide params (invAR, invDEC, minAR, minDEC, controlmode, pguide): ", self.invAR, self.invDEC, self.minARcorr, self.minDECcorr, self.controlMode, self.pulseGuideOn
         
     def GuideLastARcorr(self):
+        #method to get last AR correction
         return self.ARcorr
     
     def GuideLastDECcorr(self):
+        #method to get last DEC correction
         return self.DECcorr
 
     def GuideRoutine(self, ARdrift, DECdrift):
+        #method to guide the mount
         maxAcceptedCorrectionInMilliSec = 10000 #if is requested a correction bigger than this limit, then there is a problem! Better no move
         def sign(x):
             if x>0:
@@ -937,81 +958,85 @@ class Processes(object):
 
         print "Drift: ",round(ARdrift,2), round(DECdrift,2),  "; Corrections in ms:",round(self.ARcorr), round(self.DECcorr)
         #use inv to cope with negative corrections
-        print self.invAR, self.invDEC
         invAR = ((self.ARcorr<0)<>self.invAR)
         invDEC = ((self.DECcorr<0)<>self.invDEC)
-        print invAR, invDEC
-        self.ARcorr = abs(self.ARcorr)
-        self.DECcorr = abs(self.DECcorr)
-        if self.ARcorr < self.minARcorr: self.ARcorr = 0
-        if self.DECcorr < self.minDECcorr: self.DECcorr = 0
+        ARcorr = abs(self.ARcorr)
+        DECcorr = abs(self.DECcorr)
+        if ARcorr < self.minARcorr: ARcorr = 0
+        if DECcorr < self.minDECcorr: DECcorr = 0
         #---send corrections
-        if self.ARcorr > self.DECcorr:
-            if self.ARcorr> 0: self.SendMountCommand("e", self.controlMode, invAR)
-            Sleep(abs(self.ARcorr-self.DECcorr)/1000)
-            if self.DECcorr> 0: self.SendMountCommand("s", self.controlMode, invDEC)
-            Sleep(self.DECcorr/1000)
+        if self.pulseGuideOn and not(self.testMode):
+            self.SendMountCommand("e", invAR, ARcorr)
+            self.SendMountCommand("s", invDEC, DECcorr)
         else:
-            if self.DECcorr> 0: self.SendMountCommand("s", self.controlMode, invDEC)
-            Sleep(abs(self.ARcorr-self.DECcorr)/1000)
-            if self.ARcorr> 0: self.SendMountCommand("e", self.controlMode, invAR)
-            Sleep(self.ARcorr/1000)
-        self.SendMountCommand("q", self.controlMode)
+            if ARcorr > DECcorr:
+                if ARcorr> 0: self.SendMountCommand("e", invAR)
+                Sleep(abs(ARcorr-DECcorr)/1000)
+                if DECcorr> 0: self.SendMountCommand("s", invDEC)
+                Sleep(DECcorr/1000)
+            else:
+                if DECcorr> 0: self.SendMountCommand("s", invDEC)
+                Sleep(abs(ARcorr-DECcorr)/1000)
+                if ARcorr> 0: self.SendMountCommand("e", invAR)
+                Sleep(ARcorr/1000)
+            self.SendMountCommand("q", False)
         
-    def GuideCalibrationRoutineStart(self, controlMode):
-        self.SendMountCommand("0", controlMode) #set speed to "min speed" (min)
+    def GuideCalibrationRoutineStart(self):
+        #method for initializing guide calibration routine
+        self.SendMountCommand("0", False) #set speed to "min speed" (min)
         self.status = 0
         self.timeForCalSizeAlongX, self.timeForCalSizeAlongY = 0, 0
         self.corrRateAR, self.corrRateDEC = -1, -1
         self.gapPass = False
 
-    def GuideCalibrationRoutine(self, actualX, actualY, controlMode, invAR, invDEC, calibrationSize):
+    def GuideCalibrationRoutine(self, actualX, actualY, invAR, invDEC, calibrationSize):
+        #method for guide calibration routine
         GAP_SIZE = max(round(calibrationSize*0.1), 5) # length of no-calculation track (in order to avoid to compute backlash); min 2px
         angolo = 0.0
         if self.status == 0:
             self.newInvAR = invAR
             self.newInvDEC = invDEC
             self.startX, self.startY = actualX, actualY
-            self.SendMountCommand("n", controlMode, invDEC)
+            self.SendMountCommand("n", invDEC)
             self.status = 1
             self.gapPass = False
         if self.status > 0:
-            if sqrt((actualX-self.startX)**2+(actualY-self.startY)**2) >= GAP_SIZE and not self.gapPass:
+            if hypot((actualX-self.startX),(actualY-self.startY)) >= GAP_SIZE and not self.gapPass:
                 self.startTime = round(1000*time.time()) #self.startTime = wx.GetLocalTimeMillis() --
                 self.gapPass = True
                 print "gap passed"
                 self.startX, self.startY = actualX, actualY
-            if sqrt((actualX-self.startX)**2+(actualY-self.startY)**2) >= calibrationSize and self.gapPass:
+            if hypot((actualX-self.startX),(actualY-self.startY)) >= calibrationSize and self.gapPass:
                 self.gapPass = False
                 self.stopTime = round(1000*time.time()) #self.stopTime = wx.GetLocalTimeMillis() --
                 self.status += 1
                 deltatime = self.stopTime - self.startTime
-                deltaspace = sqrt((actualX-self.startX)**2+(actualY-self.startY)**2)
+                deltaspace = hypot((actualX-self.startX),(actualY-self.startY))
                 print "calibration status = " + str(self.status)
                 print "deltatime, deltaspace =" + str(deltatime) + ", " + str(deltaspace)
                 if self.status == 2:
                     self.corrRateDEC = deltatime/deltaspace
                     if actualY > self.startY: self.newInvDEC = not invDEC 
-                    self.SendMountCommand("q", controlMode)
+                    self.SendMountCommand("q", False)
                     Sleep(1)
-                    self.SendMountCommand("s", controlMode, invDEC)
+                    self.SendMountCommand("s", invDEC)
                 if self.status == 3:
                     self.corrRateDEC = 0.5*(self.corrRateDEC + deltatime/deltaspace)
                     if actualY < self.startY: self.newInvDEC = not invDEC 
-                    self.SendMountCommand("q", controlMode)
+                    self.SendMountCommand("q", False)
                     Sleep(1)
-                    self.SendMountCommand("w", controlMode, invAR)
+                    self.SendMountCommand("w", invAR)
                 if self.status == 4:
                     self.corrRateAR = deltatime/deltaspace
                     if actualX > self.startX: self.newInvAR = not invAR 
-                    self.SendMountCommand("q", controlMode)
+                    self.SendMountCommand("q", False)
                     Sleep(1)
-                    self.SendMountCommand("e", controlMode, invAR)
+                    self.SendMountCommand("e", invAR)
                 if self.status == 5:
                     self.corrRateAR = 0.5*(self.corrRateAR + deltatime/deltaspace)
                     if actualX < self.startX: self.newInvAR = not invAR 
-                    self.SendMountCommand("q", controlMode)
-                    angolo = -self.Angolo(actualX-self.startX, actualY-self.startY)
+                    self.SendMountCommand("q", False)
+                    angolo = self.Angolo(actualX-self.startX, actualY-self.startY)
                     # if only one direction is changed, then change angolo sign
                     if (self.newInvAR == self.newInvDEC) != (invAR == invDEC): angolo = -angolo
                 self.startX, self.startY = actualX, actualY
@@ -1019,7 +1044,8 @@ class Processes(object):
         print round(self.corrRateAR), round(self.corrRateDEC), "; invar-dec:", self.newInvAR, self.newInvDEC, "; angle:", angolo*57.3
         return self.corrRateAR, self.corrRateDEC, self.newInvAR, self.newInvDEC, angolo, 5 - self.status
 
-    def SendPetacCorrection(self, lastInterval, petacVal, mountSpeed, controlMode):
+    def SendPetacCorrection(self, lastInterval, petacVal, mountSpeed):
+        #method to apply PETAC correction
         MAX_CORRECTION_FACT = 0.8
         MAX_RATIO = 2
         if lastInterval > 0 and petacVal > 0 and mountSpeed > 0:
@@ -1030,16 +1056,16 @@ class Processes(object):
                 #no correction bigger than default interval
                 if millisec < 0 or millisec > MAX_CORRECTION_FACT * petacVal:
                     millisec = MAX_CORRECTION_FACT * petacVal
-                self.SendMountCommand("w", controlMode)
-                self.SendMountCommand("q", controlMode)
+                self.SendMountCommand("w", False)
+                self.SendMountCommand("q", False)
             elif ratio > 1 and ratio < MAX_RATIO:
                 millisec = lastInterval*((ratio-1)/(1-ratio*(1-mountSpeed)))
                 print ratio,": moving east for ", millisec, "millisecs"
                 #no correction bigger than default interval
                 if millisec < 0 or millisec > MAX_CORRECTION_FACT * petacVal:
                     millisec = MAX_CORRECTION_FACT * petacVal
-                self.SendMountCommand("e", controlMode)
-                self.SendMountCommand("q", controlMode)
+                self.SendMountCommand("e", False)
+                self.SendMountCommand("q", False)
 
     def UpdatePetacValue(self, petacVal, petacIntervals, arDrift, corrRateAR, corrSpeed, invAR):
         #remember that petacVal(msec) is the right (medium) time interval b/w two mouse movements,
@@ -1052,6 +1078,7 @@ class Processes(object):
         return petacVal
 
     def ExtractInt(self, stringa):
+        #extract an integer from a string
         l=0
         for t in stringa.split():
             try:
@@ -1061,6 +1088,7 @@ class Processes(object):
         return l
 
     def ExtractFloat(self, stringa):
+        #extract a float from a string
         l=0
         for t in stringa.split():
             try:
@@ -1070,6 +1098,7 @@ class Processes(object):
         return l
     
     def DirChoose(self, startPath, testo):
+        #open the dialog to choose a directory
         selectedDir = startPath
         dialog = wx.DirDialog(None, testo, style=1 ,defaultPath=startPath, pos = (10,10))
         if dialog.ShowModal() == wx.ID_OK:
@@ -1078,6 +1107,7 @@ class Processes(object):
         return selectedDir
     
     def CountFiles(self, dirPath):
+        #count the files in a directory
         try:
             num = len(os.listdir(dirPath))
         except:
